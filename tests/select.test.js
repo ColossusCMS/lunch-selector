@@ -89,3 +89,9 @@ test('전체 그룹: listCategories는 모든 가게의 업종', () =>
 
 test('전체 그룹: closedToday는 모든 그룹의 휴무', () =>
   assert.deepEqual(names(closedToday(S, null, 0)), ['김밥천국', '홍콩반점', '본죽']));
+
+test('꺼둔 가게에만 있는 그룹·업종은 목록에서 제외', () => {
+  const T = [...S, store('닫은집', ['일식'], ['3팀'], [], false)];
+  assert.deepEqual(listGroups(T), ['1팀', '2팀']);
+  assert.ok(!listCategories(T, null).includes('일식'));
+});

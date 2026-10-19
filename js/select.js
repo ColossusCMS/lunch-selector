@@ -13,20 +13,22 @@ const inGroup = (store, group) =>
   group === null ? store.groups.length > 0 : store.groups.includes(group);
 
 /**
+ * 사용 중인 가게가 있는 그룹만.
  * @param {Store[]} stores
  * @returns {string[]}
  */
 export function listGroups(stores) {
-  return [...new Set(stores.flatMap((s) => s.groups))].sort(byKorean);
+  return [...new Set(stores.filter((s) => s.enabled).flatMap((s) => s.groups))].sort(byKorean);
 }
 
 /**
+ * 사용 중인 가게의 업종만.
  * @param {Store[]} stores
  * @param {string | null} group null이면 전체
  * @returns {string[]}
  */
 export function listCategories(stores, group) {
-  const members = stores.filter((s) => inGroup(s, group));
+  const members = stores.filter((s) => s.enabled && inGroup(s, group));
   return [...new Set(members.flatMap((s) => s.categories))].sort(byKorean);
 }
 
