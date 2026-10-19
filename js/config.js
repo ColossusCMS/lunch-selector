@@ -10,7 +10,8 @@ export const SHEET_TAB = '가게목록';
  * 비워두면 SHEET_ID로 gviz 주소를 만든다.
  * "웹에 게시" CSV 주소나 'data/sample-stores.csv'를 넣으면 그 주소를 쓴다.
  */
-export const CSV_URL_OVERRIDE = '';
+export const CSV_URL_OVERRIDE =
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vQWy__V0_6ECJT2UuhK7vNYLbu0R5bF5tsjLofOgSu0uWXXLya3qnUOexOowE7Cksc-IXcMpg7hhkU0/pub?gid=0&single=true&output=csv';
 
 const SAMPLE_URL = 'data/sample-stores.csv';
 
