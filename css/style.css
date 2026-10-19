@@ -168,3 +168,40 @@ h1 {
 .edit-link { color: var(--muted); }
 
 [hidden] { display: none !important; }
+
+/* 연출 */
+.rank {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.rank.show {
+  opacity: 1;
+  transform: none;
+}
+
+.reel.done { animation: pop 0.35s ease; }
+@keyframes pop {
+  50% { transform: scale(1.06); }
+}
+
+.confetti {
+  position: absolute;
+  top: -12px;
+  width: 7px;
+  height: 12px;
+  border-radius: 2px;
+  pointer-events: none;
+  animation: fall 1.3s ease-in forwards;
+}
+@keyframes fall {
+  to {
+    transform: translate(var(--drift, 0), 180px) rotate(540deg);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rank { transition: none; transform: none; }
+  .reel.done { animation: none; }
+}

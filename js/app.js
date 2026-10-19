@@ -3,6 +3,7 @@
 import { dataUrl, editUrl } from './config.js';
 import { loadStores } from './data.js';
 import { listGroups, listCategories, filterCandidates, closedToday, pickTop } from './select.js';
+import { spinReel, burstConfetti, revealInOrder, reducedMotion } from './animation.js';
 
 const GROUP_KEY = 'lunch-selector:group';
 
@@ -10,6 +11,7 @@ const $ = (id) => document.getElementById(id);
 const els = {
   group: $('group'),
   categories: $('categories'),
+  stage: $('stage'),
   reel: $('reel'),
   reelSub: $('reel-sub'),
   spin: $('spin'),
@@ -104,14 +106,16 @@ function selectGroup(group) {
   resetResult();
 }
 
-/** 결과 표시. Task 6에서 연출로 교체된다. */
-async function present(picks) {
+/** 감속 릴 → 1순위 강조·폭죽 → 2·3순위 순차 페이드 인 */
+async function present(picks, candidates) {
   const [first, second, third] = picks;
-  els.reel.textContent = first.name;
-  els.reel.classList.add('done');
-  els.reelSub.textContent = describe(first);
+  const calm = reducedMotion();
   fillRank(els.rank2, '2순위', second);
   fillRank(els.rank3, '3순위', third);
+  await spinReel(els.reel, candidates.map((s) => s.name), first.name, calm ? 0 : 2000);
+  els.reelSub.textContent = describe(first);
+  if (!calm) burstConfetti(els.stage);
+  await revealInOrder([els.rank2, els.rank3].filter((el) => !el.hidden), calm ? 0 : 350);
 }
 
 async function spin() {
@@ -165,7 +169,8 @@ async function load() {
 }
 
 els.group.addEventListener('change', () => {
-  if (!state.spinning) selectGroup(els.group.value);
+  if (state.spinning) els.group.value = state.group;
+  else selectGroup(els.group.value);
 });
 
 els.categories.addEventListener('click', (event) => {
