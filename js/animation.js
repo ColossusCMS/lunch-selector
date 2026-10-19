@@ -39,20 +39,25 @@ export function spinReel(el, names, final, duration = 2000) {
 }
 
 /**
- * @param {HTMLElement} container position: relative 인 요소
+ * 화면 전체 위에서 꽃가루가 쏟아진다.
  * @param {number} [count]
  */
-export function burstConfetti(container, count = 30) {
+export function burstConfetti(count = 120) {
+  const layer = document.createElement('div');
+  layer.className = 'confetti-layer';
   for (let i = 0; i < count; i++) {
     const piece = document.createElement('span');
     piece.className = 'confetti';
     piece.style.left = `${Math.random() * 100}%`;
     piece.style.background = CONFETTI_COLORS[i % CONFETTI_COLORS.length];
-    piece.style.animationDelay = `${Math.random() * 0.3}s`;
-    piece.style.setProperty('--drift', `${(Math.random() - 0.5) * 80}px`);
-    container.appendChild(piece);
-    setTimeout(() => piece.remove(), 1600);
+    piece.style.animationDuration = `${2 + Math.random() * 1.2}s`;
+    piece.style.animationDelay = `${Math.random() * 0.5}s`;
+    piece.style.setProperty('--drift', `${(Math.random() - 0.5) * 200}px`);
+    piece.style.setProperty('--spin', `${360 + Math.random() * 720}deg`);
+    layer.appendChild(piece);
   }
+  document.body.appendChild(layer);
+  setTimeout(() => layer.remove(), 3800);
 }
 
 /**

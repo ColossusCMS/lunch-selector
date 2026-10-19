@@ -185,18 +185,25 @@ h1 {
   50% { transform: scale(1.06); }
 }
 
+.confetti-layer {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 10;
+}
 .confetti {
   position: absolute;
-  top: -12px;
-  width: 7px;
-  height: 12px;
+  top: -16px;
+  width: 8px;
+  height: 14px;
   border-radius: 2px;
-  pointer-events: none;
-  animation: fall 1.3s ease-in forwards;
+  animation: fall 2.5s cubic-bezier(0.3, 0.6, 0.6, 1) forwards;
 }
 @keyframes fall {
+  80% { opacity: 1; }
   to {
-    transform: translate(var(--drift, 0), 180px) rotate(540deg);
+    transform: translate(var(--drift, 0), calc(100vh + 32px)) rotate(var(--spin, 540deg));
     opacity: 0;
   }
 }

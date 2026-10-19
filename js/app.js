@@ -114,7 +114,7 @@ async function present(picks, candidates) {
   fillRank(els.rank3, '3순위', third);
   await spinReel(els.reel, candidates.map((s) => s.name), first.name, calm ? 0 : 2000);
   els.reelSub.textContent = describe(first);
-  if (!calm) burstConfetti(els.stage);
+  if (!calm) burstConfetti();
   await revealInOrder([els.rank2, els.rank3].filter((el) => !el.hidden), calm ? 0 : 350);
 }
 
