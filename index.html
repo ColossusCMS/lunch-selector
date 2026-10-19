@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>오늘 점심 뭐 먹지</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍱</text></svg>">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main class="app">
+    <h1>🍱 오늘 점심 뭐 먹지?</h1>
+
+    <label class="field">
+      <span>점심 그룹</span>
+      <select id="group" disabled></select>
+    </label>
+
+    <div id="categories" class="chips" role="group" aria-label="업종 필터"></div>
+
+    <section class="stage" id="stage">
+      <div id="reel" class="reel" aria-live="polite">?</div>
+      <div id="reel-sub" class="reel-sub"></div>
+    </section>
+
+    <button id="spin" class="spin" type="button" disabled>🎰 돌리기</button>
+
+    <div class="ranks">
+      <article id="rank2" class="rank" hidden></article>
+      <article id="rank3" class="rank" hidden></article>
+    </div>
+
+    <p id="message" class="message">불러오는 중...</p>
+    <button id="retry" class="retry" type="button" hidden>다시 시도</button>
+
+    <footer class="footer">
+      <p id="closed" class="closed" hidden></p>
+      <a id="edit-link" class="edit-link" target="_blank" rel="noopener" hidden>✏️ 가게 목록 편집하기</a>
+    </footer>
+  </main>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
