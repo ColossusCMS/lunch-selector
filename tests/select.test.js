@@ -71,3 +71,21 @@ test('pickTop: 모든 후보가 1순위로 나올 수 있음', () => {
   for (let i = 0; i < 400; i++) firsts.add(pickTop(c)[0].name);
   assert.equal(firsts.size, 4);
 });
+
+// 그룹 null = 전체
+test('전체 그룹: 그룹 구분 없이 후보 (중복 없음)', () =>
+  assert.deepEqual(
+    names(filterCandidates(S, { group: null, categories: [], day: 1 })),
+    ['김밥천국', '홍콩반점', '본죽', '서브웨이'],
+  ));
+
+test('전체 그룹: 그룹이 빈 가게는 제외', () => {
+  const T = [...S, store('무소속', ['한식'], [], [])];
+  assert.ok(!names(filterCandidates(T, { group: null, categories: [], day: 2 })).includes('무소속'));
+});
+
+test('전체 그룹: listCategories는 모든 가게의 업종', () =>
+  assert.deepEqual(listCategories(S, null), ['분식', '양식', '중식', '한식']));
+
+test('전체 그룹: closedToday는 모든 그룹의 휴무', () =>
+  assert.deepEqual(names(closedToday(S, null, 0)), ['김밥천국', '홍콩반점', '본죽']));

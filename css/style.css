@@ -43,28 +43,25 @@ h1 {
   margin: 0 0 20px;
 }
 
-.field {
+.filter-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
   margin-bottom: 12px;
 }
-.field span { color: var(--muted); font-size: 0.9rem; white-space: nowrap; }
-.field select {
-  flex: 1;
-  padding: 10px 12px;
-  font-size: 1rem;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--surface);
-  color: var(--text);
+.filter-row + .stage { margin-top: 8px; }
+.filter-label {
+  flex: 0 0 4.5em;
+  padding-top: 7px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  white-space: nowrap;
 }
 
 .chips {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-bottom: 20px;
 }
 .chip {
   padding: 6px 14px;

@@ -6,10 +6,11 @@ import { listGroups, listCategories, filterCandidates, closedToday, pickTop } fr
 import { spinReel, burstConfetti, revealInOrder, reducedMotion } from './animation.js';
 
 const GROUP_KEY = 'lunch-selector:group';
+const ALL_SAVED = '*'; // 저장소에서 '전체'를 나타내는 값
 
 const $ = (id) => document.getElementById(id);
 const els = {
-  group: $('group'),
+  groups: $('groups'),
   categories: $('categories'),
   stage: $('stage'),
   reel: $('reel'),
@@ -26,7 +27,8 @@ const els = {
 const state = {
   /** @type {import('./stores.js').Store[]} */
   stores: [],
-  group: '',
+  /** @type {string | null} null이면 전체 */
+  group: null,
   categories: new Set(),
   spinning: false,
 };
@@ -72,17 +74,43 @@ function fillRank(el, label, store) {
   el.hidden = false;
 }
 
+/** value가 null이면 [전체] 칩 */
+function makeChip(label, value, key) {
+  const chip = document.createElement('button');
+  chip.type = 'button';
+  chip.className = 'chip';
+  chip.textContent = label;
+  if (value !== null) chip.dataset[key] = value;
+  return chip;
+}
+
+function renderGroups() {
+  const chips = [makeChip('전체', null, 'group'), ...listGroups(state.stores).map((g) => makeChip(g, g, 'group'))];
+  els.groups.replaceChildren(...chips);
+  syncGroupChips();
+}
+
+function syncGroupChips() {
+  for (const chip of els.groups.querySelectorAll('.chip')) {
+    chip.setAttribute('aria-pressed', String((chip.dataset.group ?? null) === state.group));
+  }
+}
+
 function renderCategories() {
-  const chips = listCategories(state.stores, state.group).map((category) => {
-    const chip = document.createElement('button');
-    chip.type = 'button';
-    chip.className = 'chip';
-    chip.dataset.category = category;
-    chip.textContent = category;
-    chip.setAttribute('aria-pressed', String(state.categories.has(category)));
-    return chip;
-  });
+  const chips = [
+    makeChip('전체', null, 'category'),
+    ...listCategories(state.stores, state.group).map((c) => makeChip(c, c, 'category')),
+  ];
   els.categories.replaceChildren(...chips);
+  syncCategoryChips();
+}
+
+function syncCategoryChips() {
+  for (const chip of els.categories.querySelectorAll('.chip')) {
+    const { category } = chip.dataset;
+    const pressed = category === undefined ? state.categories.size === 0 : state.categories.has(category);
+    chip.setAttribute('aria-pressed', String(pressed));
+  }
 }
 
 function renderClosed() {
@@ -93,14 +121,14 @@ function renderClosed() {
 
 function setControlsDisabled(disabled) {
   els.spin.disabled = disabled;
-  els.group.disabled = disabled;
-  for (const chip of els.categories.querySelectorAll('.chip')) chip.disabled = disabled;
+  for (const chip of document.querySelectorAll('.chip')) chip.disabled = disabled;
 }
 
 function selectGroup(group) {
   state.group = group;
   state.categories.clear();
-  storage.set(GROUP_KEY, group);
+  storage.set(GROUP_KEY, group ?? ALL_SAVED);
+  syncGroupChips();
   renderCategories();
   renderClosed();
   resetResult();
@@ -154,32 +182,33 @@ async function load() {
   }
 
   const groups = listGroups(state.stores);
-  els.group.replaceChildren(
-    ...groups.map((g) => Object.assign(document.createElement('option'), { value: g, textContent: g })),
-  );
   if (groups.length === 0) {
     setMessage('조건에 맞는 가게가 없어요');
     return;
   }
   const saved = storage.get(GROUP_KEY);
-  const initial = groups.includes(saved) ? saved : groups[0];
-  els.group.value = initial;
+  const initial = saved === ALL_SAVED ? null : groups.includes(saved) ? saved : groups[0];
+  state.group = initial;
+  renderGroups();
   selectGroup(initial);
   setControlsDisabled(false);
 }
 
-els.group.addEventListener('change', () => {
-  if (state.spinning) els.group.value = state.group;
-  else selectGroup(els.group.value);
+els.groups.addEventListener('click', (event) => {
+  const chip = event.target.closest('.chip');
+  if (!chip || state.spinning) return;
+  const group = chip.dataset.group ?? null;
+  if (group !== state.group) selectGroup(group);
 });
 
 els.categories.addEventListener('click', (event) => {
   const chip = event.target.closest('.chip');
   if (!chip || state.spinning) return;
   const { category } = chip.dataset;
-  if (state.categories.has(category)) state.categories.delete(category);
+  if (category === undefined) state.categories.clear();
+  else if (state.categories.has(category)) state.categories.delete(category);
   else state.categories.add(category);
-  chip.setAttribute('aria-pressed', String(state.categories.has(category)));
+  syncCategoryChips();
   resetResult();
 });
 
