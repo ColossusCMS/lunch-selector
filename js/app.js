@@ -15,6 +15,7 @@ const els = {
   stage: $('stage'),
   reel: $('reel'),
   reelSub: $('reel-sub'),
+  announce: $('announce'),
   spin: $('spin'),
   rank2: $('rank2'),
   rank3: $('rank3'),
@@ -55,6 +56,7 @@ function resetResult() {
   els.reel.textContent = '?';
   els.reel.classList.remove('done');
   els.reelSub.textContent = '';
+  els.announce.textContent = '';
   for (const el of [els.rank2, els.rank3]) {
     el.hidden = true;
     el.classList.remove('show');
@@ -142,6 +144,8 @@ async function present(picks, candidates) {
   fillRank(els.rank3, '3순위', third);
   await spinReel(els.reel, candidates.map((s) => s.name), first.name, calm ? 0 : 2000);
   els.reelSub.textContent = describe(first);
+  // 화면 낭독기는 회전 중 이름이 아니라 최종 결과만 한 번 읽는다.
+  els.announce.textContent = picks.map((s, i) => `${i + 1}순위 ${s.name}`).join(', ');
   if (!calm) burstConfetti();
   await revealInOrder([els.rank2, els.rank3].filter((el) => !el.hidden), calm ? 0 : 350);
 }
@@ -149,6 +153,7 @@ async function present(picks, candidates) {
 async function spin() {
   if (state.spinning) return;
   resetResult();
+  renderClosed(); // 페이지를 연 채 날짜가 바뀌었을 수 있다
   const candidates = filterCandidates(state.stores, {
     group: state.group,
     categories: [...state.categories],
@@ -183,7 +188,8 @@ async function load() {
 
   const groups = listGroups(state.stores);
   if (groups.length === 0) {
-    setMessage('조건에 맞는 가게가 없어요');
+    setMessage('시트에 가게가 없어요');
+    els.retry.hidden = false;
     return;
   }
   const saved = storage.get(GROUP_KEY);
