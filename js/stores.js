@@ -25,19 +25,21 @@ export function splitMulti(value) {
 }
 
 /**
- * '토,일' → [0, 6]. '월요일'처럼 써도 첫 글자로 인식한다.
+ * '토,일' → [0, 6]. 쉼표 대신 공백·/·· 로 나누거나 '토일'처럼 붙여 써도,
+ * '월요일'처럼 써도 인식한다.
  * @param {string} value
  * @returns {number[]}
  */
 export function parseDays(value) {
   const days = new Set();
-  for (const token of splitMulti(value)) {
-    const day = DAY_CHARS.indexOf(token[0]);
-    if (day === -1) {
+  const tokens = (value ?? '').split(/[,，\s/·]+/).filter(Boolean);
+  for (const token of tokens) {
+    const chars = [...token.replace(/요일$/, '')];
+    if (chars.length === 0 || !chars.every((c) => DAY_CHARS.includes(c))) {
       console.warn(`알 수 없는 정기휴무 값을 무시합니다: "${token}"`);
       continue;
     }
-    days.add(day);
+    for (const c of chars) days.add(DAY_CHARS.indexOf(c));
   }
   return [...days].sort((a, b) => a - b);
 }

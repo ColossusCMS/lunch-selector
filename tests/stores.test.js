@@ -59,3 +59,17 @@ test('rowsToStores: 그룹이 빈 가게는 콘솔 경고', (t) => {
   assert.equal(warn.mock.callCount(), 1);
   assert.match(warn.mock.calls[0].arguments[0], /본죽/);
 });
+
+test('parseDays: 쉼표 없이 적은 휴무도 모두 인식', () => {
+  assert.deepEqual(parseDays('토 일'), [0, 6]);
+  assert.deepEqual(parseDays('토일'), [0, 6]);
+  assert.deepEqual(parseDays('토/일'), [0, 6]);
+  assert.deepEqual(parseDays('토·일'), [0, 6]);
+  assert.deepEqual(parseDays('토요일 일요일'), [0, 6]);
+});
+
+test('parseDays: 요일이 아닌 글자가 섞이면 경고하고 무시', (t) => {
+  const warn = t.mock.method(console, 'warn', () => {});
+  assert.deepEqual(parseDays('일, 매주'), [0]);
+  assert.equal(warn.mock.callCount(), 1);
+});
