@@ -38,6 +38,17 @@ export function cachedLookup(lookup) {
   };
 }
 
+/**
+ * '승학로 508 1-2층 104호'처럼 층·호수가 붙어 못 찾는 주소를 건물 번호(지번)까지로 줄인다.
+ * @param {string} address
+ * @returns {string | null} 줄일 게 없으면 null
+ */
+export function coreAddress(address) {
+  const match = address.match(/^.*?(?:로|길|동|리|가)\s*\d+(?:-\d+)?(?=\s|$)/);
+  const core = match?.[0].trim();
+  return core && core !== address.trim() ? core : null;
+}
+
 let sdk = null;
 
 /** @returns {Promise<any>} kakao 전역 객체 */
@@ -69,15 +80,20 @@ export function createMap(key) {
   let map = null;
   let overlays = [];
 
+  /** @returns {Promise<Point | null>} */
+  const search = (kakao, address) => new Promise((resolve) => {
+    new kakao.maps.services.Geocoder().addressSearch(address, (result, status) => {
+      const ok = status === kakao.maps.services.Status.OK && result[0];
+      resolve(ok ? { lat: Number(result[0].y), lng: Number(result[0].x) } : null);
+    });
+  });
+
   const geocode = cachedLookup(async (address) => {
     const kakao = await loadSdk(key);
-    return new Promise((resolve) => {
-      new kakao.maps.services.Geocoder().addressSearch(address, (result, status) => {
-        const ok = status === kakao.maps.services.Status.OK && result[0];
-        if (!ok) console.warn(`주소를 찾지 못했어요: "${address}"`);
-        resolve(ok ? { lat: Number(result[0].y), lng: Number(result[0].x) } : null);
-      });
-    });
+    const core = coreAddress(address);
+    const point = (await search(kakao, address)) ?? (core && (await search(kakao, core)));
+    if (!point) console.warn(`주소를 찾지 못했어요: "${address}"`);
+    return point || null;
   });
 
   return {

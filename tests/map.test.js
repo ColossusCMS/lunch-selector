@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { kakaoLink, cachedLookup } from '../js/map.js';
+import { kakaoLink, cachedLookup, coreAddress } from '../js/map.js';
 
 test('kakaoLink: 좌표가 있으면 그 위치를 핀으로 연다', () => {
   assert.equal(
@@ -42,4 +42,20 @@ test('cachedLookup: 조회가 실패하면 null이고 다음에 다시 묻는다
   assert.equal(await locate('서울'), null);
   assert.equal(await locate('서울'), null);
   assert.equal(calls, 2);
+});
+
+test('coreAddress: 도로명 주소는 건물 번호까지만 남긴다', () => {
+  assert.equal(coreAddress('인천 서해구 승학로 508 1-2층 104~105,201호'), '인천 서해구 승학로 508');
+  assert.equal(coreAddress('인천 서해구 검암로 21 1~2층'), '인천 서해구 검암로 21');
+  assert.equal(coreAddress('인천 서해구 검암로30번길 10 106, 107호 금복돈육식당'), '인천 서해구 검암로30번길 10');
+  assert.equal(coreAddress('서울 강남구 테헤란로 123-4 2층'), '서울 강남구 테헤란로 123-4');
+});
+
+test('coreAddress: 지번 주소는 번지까지만 남긴다', () => {
+  assert.equal(coreAddress('인천 서구 검암동 123-4 2층'), '인천 서구 검암동 123-4');
+});
+
+test('coreAddress: 더 줄일 수 없으면 null', () => {
+  assert.equal(coreAddress('인천 서해구 승학로 508'), null);
+  assert.equal(coreAddress('아무거나'), null);
 });
