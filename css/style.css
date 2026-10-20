@@ -106,6 +106,7 @@ h1 {
   font-weight: 700;
   text-align: center;
   word-break: keep-all;
+  overflow-wrap: anywhere; /* 띄어쓰기 없는 긴 이름은 카드 안에서 줄바꿈 */
 }
 .reel.done {
   border-color: var(--win);
@@ -147,7 +148,7 @@ h1 {
   text-align: center;
 }
 .rank .label { color: var(--muted); font-size: 0.8rem; }
-.rank .name { font-weight: 700; font-size: 1.05rem; margin: 2px 0; word-break: keep-all; }
+.rank .name { font-weight: 700; font-size: 1.05rem; margin: 2px 0; word-break: keep-all; overflow-wrap: anywhere; }
 .rank .meta { color: var(--muted); font-size: 0.8rem; }
 
 .map-link {
