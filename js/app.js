@@ -1,9 +1,10 @@
 // 화면 초기화와 이벤트 처리.
 
-import { dataUrl, editUrl } from './config.js';
+import { dataUrl, editUrl, KAKAO_MAP_KEY } from './config.js';
 import { loadStores } from './data.js';
 import { listGroups, listCategories, filterCandidates, closedToday, pickTop } from './select.js';
 import { spinReel, burstConfetti, revealInOrder, reducedMotion } from './animation.js';
+import { createMap, kakaoLink } from './map.js';
 
 const GROUP_KEY = 'lunch-selector:group';
 const ALL_SAVED = '*'; // 저장소에서 '전체'를 나타내는 값
@@ -15,10 +16,12 @@ const els = {
   stage: $('stage'),
   reel: $('reel'),
   reelSub: $('reel-sub'),
+  reelLink: $('reel-link'),
   announce: $('announce'),
   spin: $('spin'),
   rank2: $('rank2'),
   rank3: $('rank3'),
+  map: $('map'),
   message: $('message'),
   retry: $('retry'),
   closed: $('closed'),
@@ -32,7 +35,11 @@ const state = {
   group: null,
   categories: new Set(),
   spinning: false,
+  /** 결과를 지울 때마다 늘어난다. 늦게 끝난 주소 조회가 지운 화면에 지도를 띄우지 않게 한다. */
+  round: 0,
 };
+
+const map = createMap(KAKAO_MAP_KEY);
 
 const storage = {
   get(key) {
@@ -53,9 +60,13 @@ function setMessage(text) {
 }
 
 function resetResult() {
+  state.round += 1;
   els.reel.textContent = '?';
   els.reel.classList.remove('done');
   els.reelSub.textContent = '';
+  els.reelLink.hidden = true;
+  els.map.hidden = true;
+  els.map.classList.remove('show');
   els.announce.textContent = '';
   for (const el of [els.rank2, els.rank3]) {
     el.hidden = true;
@@ -72,8 +83,38 @@ function fillRank(el, label, store) {
     return;
   }
   const make = (cls, text) => Object.assign(document.createElement('div'), { className: cls, textContent: text });
-  el.replaceChildren(make('label', label), make('name', store.name), make('meta', describe(store)));
+  const link = Object.assign(document.createElement('a'), {
+    className: 'map-link',
+    href: kakaoLink(store.name, null),
+    target: '_blank',
+    rel: 'noopener',
+    textContent: '📍 카카오맵',
+  });
+  el.replaceChildren(make('label', label), make('name', store.name), make('meta', describe(store)), link);
   el.hidden = false;
+}
+
+/** 찾은 좌표로 링크를 고치고, 하나라도 찾았으면 지도에 핀을 찍는다. */
+async function showOnMap(picks, located, round) {
+  const points = await located;
+  if (round !== state.round) return;
+  const links = [els.reelLink, ...[els.rank2, els.rank3].map((el) => el.querySelector('.map-link'))];
+  picks.forEach((store, i) => {
+    if (links[i]) links[i].href = kakaoLink(store.name, points[i]);
+  });
+  const pins = picks
+    .map((store, i) => ({ rank: i + 1, name: store.name, point: points[i] }))
+    .filter((pin) => pin.point);
+  if (pins.length === 0) return;
+  els.map.hidden = false;
+  try {
+    await map.show(els.map, pins);
+    if (round !== state.round) return;
+    els.map.classList.add('show');
+  } catch (err) {
+    console.warn('지도를 그리지 못했어요', err);
+    els.map.hidden = true;
+  }
 }
 
 /** value가 null이면 [전체] 칩 */
@@ -140,14 +181,20 @@ function selectGroup(group) {
 async function present(picks, candidates) {
   const [first, second, third] = picks;
   const calm = reducedMotion();
+  const round = state.round;
+  // 릴이 도는 동안 미리 주소를 조회해 둔다.
+  const located = map.enabled ? Promise.all(picks.map((s) => map.locate(s.address))) : null;
   fillRank(els.rank2, '2순위', second);
   fillRank(els.rank3, '3순위', third);
   await spinReel(els.reel, candidates.map((s) => s.name), first.name, calm ? 0 : 2000);
   els.reelSub.textContent = describe(first);
+  els.reelLink.href = kakaoLink(first.name, null);
+  els.reelLink.hidden = false;
   // 화면 낭독기는 회전 중 이름이 아니라 최종 결과만 한 번 읽는다.
   els.announce.textContent = picks.map((s, i) => `${i + 1}순위 ${s.name}`).join(', ');
   if (!calm) burstConfetti();
   await revealInOrder([els.rank2, els.rank3].filter((el) => !el.hidden), calm ? 0 : 350);
+  if (located) showOnMap(picks, located, round);
 }
 
 async function spin() {

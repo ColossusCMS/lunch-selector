@@ -13,6 +13,13 @@ export const SHEET_TAB = '가게목록';
 export const CSV_URL_OVERRIDE =
   'https://docs.google.com/spreadsheets/d/e/2PACX-1vQWy__V0_6ECJT2UuhK7vNYLbu0R5bF5tsjLofOgSu0uWXXLya3qnUOexOowE7Cksc-IXcMpg7hhkU0/pub?gid=0&single=true&output=csv';
 
+/**
+ * 카카오 JavaScript 키. 비워두면 지도 기능이 꺼진다.
+ * 카카오디벨로퍼스 [앱] > [플랫폼 키] > [JavaScript 키] > [JavaScript SDK 도메인]에
+ * 사이트 주소를 등록한 키만 동작하므로 공개돼도 괜찮다.
+ */
+export const KAKAO_MAP_KEY = 'c509755e4abe6ed93589ebd11fc0dcb7';
+
 const SAMPLE_URL = 'data/sample-stores.csv';
 
 /**

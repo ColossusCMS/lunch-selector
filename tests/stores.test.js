@@ -30,21 +30,21 @@ test('rowsToStores: 헤더 순서 무관·공백/BOM 헤더·모르는 열 무�
     ['국수나무', '1팀', '한식', '수', 'FALSE', '사용 안 함', ''],
   ];
   assert.deepEqual(rowsToStores(rows), [
-    { name: '김밥천국', groups: ['1팀', '2팀'], categories: ['분식', '한식'], closedDays: [0], enabled: true, memo: '' },
-    { name: '국수나무', groups: ['1팀'], categories: ['한식'], closedDays: [3], enabled: false, memo: '사용 안 함' },
+    { name: '김밥천국', groups: ['1팀', '2팀'], categories: ['분식', '한식'], closedDays: [0], enabled: true, memo: '', address: '' },
+    { name: '국수나무', groups: ['1팀'], categories: ['한식'], closedDays: [3], enabled: false, memo: '사용 안 함', address: '' },
   ]);
 });
 
 test('rowsToStores: 선택 열이 없어도 동작', () => {
   assert.deepEqual(rowsToStores([['가게명', '그룹'], ['본죽', '2팀']]), [
-    { name: '본죽', groups: ['2팀'], categories: [], closedDays: [], enabled: true, memo: '' },
+    { name: '본죽', groups: ['2팀'], categories: [], closedDays: [], enabled: true, memo: '', address: '' },
   ]);
 });
 
 test('rowsToStores: 짧은 행(뒤쪽 칸 누락)도 동작', (t) => {
   t.mock.method(console, 'warn', () => {});
   assert.deepEqual(rowsToStores([['가게명', '그룹', '메모'], ['본죽']]), [
-    { name: '본죽', groups: [], categories: [], closedDays: [], enabled: true, memo: '' },
+    { name: '본죽', groups: [], categories: [], closedDays: [], enabled: true, memo: '', address: '' },
   ]);
 });
 
@@ -72,4 +72,9 @@ test('parseDays: 요일이 아닌 글자가 섞이면 경고하고 무시', (t) 
   const warn = t.mock.method(console, 'warn', () => {});
   assert.deepEqual(parseDays('일, 매주'), [0]);
   assert.equal(warn.mock.callCount(), 1);
+});
+
+test('rowsToStores: 주소 열을 앞뒤 공백 없이 읽는다', () => {
+  const [store] = rowsToStores([['가게명', '그룹', '주소'], ['본죽', '2팀', ' 서울 중구 세종대로 110 ']]);
+  assert.equal(store.address, '서울 중구 세종대로 110');
 });

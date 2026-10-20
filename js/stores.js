@@ -1,6 +1,6 @@
 // 시트 행(string[][])을 가게 목록으로 정규화한다.
 
-/** @typedef {{ name: string, categories: string[], groups: string[], closedDays: number[], enabled: boolean, memo: string }} Store */
+/** @typedef {{ name: string, categories: string[], groups: string[], closedDays: number[], enabled: boolean, memo: string, address: string }} Store */
 
 const DAY_CHARS = '일월화수목금토'; // Date#getDay() 순서
 const DISABLED_VALUES = ['false', 'n', '아니오', '0'];
@@ -12,6 +12,7 @@ const HEADERS = {
   closedDays: '정기휴무',
   enabled: '사용여부',
   memo: '메모',
+  address: '주소',
 };
 
 /**
@@ -76,6 +77,7 @@ export function rowsToStores(rows) {
       closedDays: parseDays(cell(row, 'closedDays')),
       enabled: isEnabled(cell(row, 'enabled')),
       memo: cell(row, 'memo').trim(),
+      address: cell(row, 'address').trim(),
     }));
 
   for (const store of stores) {

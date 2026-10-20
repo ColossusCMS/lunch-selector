@@ -142,6 +142,52 @@ h1 {
 .rank .name { font-weight: 700; font-size: 1.05rem; margin: 2px 0; word-break: keep-all; }
 .rank .meta { color: var(--muted); font-size: 0.8rem; }
 
+.map-link {
+  display: inline-block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.stage .map-link { display: block; width: fit-content; margin: 4px auto 0; }
+
+.map {
+  height: 240px;
+  margin-top: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.map.show { animation: fade-in 0.4s ease; }
+@keyframes fade-in { from { opacity: 0; } }
+
+/* 지도 위 순위 핀(카카오 CustomOverlay 내용) */
+.pin {
+  position: relative;
+  margin-bottom: 8px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #fff;
+  color: #2b2420;
+  border: 2px solid #8a7f77;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.25);
+}
+.pin::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -8px;
+  margin-left: -6px;
+  border: 6px solid transparent;
+  border-top-color: #8a7f77;
+  border-bottom: 0;
+}
+.pin b { margin-right: 2px; }
+.pin-1 { background: #e8590c; border-color: #e8590c; color: #fff; }
+.pin-1::after { border-top-color: #e8590c; }
+
 .message { text-align: center; color: var(--muted); min-height: 1.4em; }
 .message:empty { display: none; }
 .retry {
@@ -220,4 +266,5 @@ h1 {
 @media (prefers-reduced-motion: reduce) {
   .rank { transition: none; transform: none; }
   .reel.done { animation: none; }
+  .map.show { animation: none; }
 }
