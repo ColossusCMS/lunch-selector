@@ -5,6 +5,7 @@ import { loadStores } from './data.js';
 import { listGroups, listCategories, filterCandidates, closedToday, pickTop } from './select.js';
 import { spinReel, burstConfetti, revealInOrder, reducedMotion } from './animation.js';
 import { createMap, kakaoLink } from './map.js';
+import { THEME_KEY, THEMES, parseTheme, applyTheme } from './theme.js';
 
 const GROUP_KEY = 'lunch-selector:group';
 const MODE_KEY = 'lunch-selector:mode';
@@ -12,6 +13,7 @@ const ALL_SAVED = '*'; // 저장소에서 '전체'를 나타내는 값
 
 const $ = (id) => document.getElementById(id);
 const els = {
+  theme: $('theme'),
   heading: $('heading'),
   modes: $('modes'),
   groups: $('groups'),
@@ -228,6 +230,26 @@ async function spin() {
   }
 }
 
+function renderThemes() {
+  els.theme.replaceChildren(...THEMES.map(({ id, icon, label }) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.dataset.theme = id;
+    button.textContent = icon;
+    button.title = label;
+    button.setAttribute('aria-label', label);
+    return button;
+  }));
+}
+
+function selectTheme(theme) {
+  applyTheme(theme);
+  storage.set(THEME_KEY, theme);
+  for (const button of els.theme.querySelectorAll('button')) {
+    button.setAttribute('aria-pressed', String(button.dataset.theme === theme));
+  }
+}
+
 function renderModes() {
   const list = modes();
   els.modes.hidden = list.length < 2;
@@ -313,8 +335,16 @@ els.modes.addEventListener('click', (event) => {
   selectMode(modes().find((m) => m.id === chip.dataset.mode));
 });
 
+els.theme.addEventListener('click', (event) => {
+  const button = event.target.closest('button');
+  if (button) selectTheme(button.dataset.theme);
+});
+
 els.spin.addEventListener('click', spin);
 els.retry.addEventListener('click', load);
+
+renderThemes();
+selectTheme(parseTheme(storage.get(THEME_KEY)));
 
 const savedMode = storage.get(MODE_KEY);
 renderModes();

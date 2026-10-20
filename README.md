@@ -12,7 +12,7 @@
 ![No Backend](https://img.shields.io/badge/Backend-없음-2f9e44)
 ![No Build](https://img.shields.io/badge/Build-없음-2f9e44)
 ![Dependencies](https://img.shields.io/badge/dependencies-0-2f9e44)
-![Tests](https://img.shields.io/badge/tests-56_passing-2f9e44)
+![Tests](https://img.shields.io/badge/tests-59_passing-2f9e44)
 
 <img src="docs/images/demo.gif" alt="돌리기 버튼을 누르면 가게 이름이 빠르게 돌다가 멈추고, 폭죽과 함께 1순위가 정해진 뒤 2·3순위 카드와 지도가 나타나는 모습" width="320">
 
@@ -40,7 +40,7 @@
 | 🗺️ **지도에 1·2·3순위 표시** | 주소를 좌표로 바꿔 순위 핀을 찍고, 세 곳이 한 화면에 들어오게 맞춰요. 카드마다 카카오맵 바로가기가 있어 휴대폰에서 바로 길찾기로 이어져요. |
 | ☕ **점심 ↔ 카페 전환** | 같은 양식의 시트 탭만 하나 더 만들면, 버튼 하나로 "오늘 카페 어디 가지?"가 돼요. |
 | ✏️ **누구나 고치는 목록** | 가게 목록은 구글 시트예요. 개발자가 아니어도 시트만 고치면 새로고침 한 번으로 반영돼요. |
-| 🌗 **다크 모드 · 접근성** | 시스템 테마를 따르고, 움직임 줄이기 설정을 존중하며, 화면 낭독기에는 회전 중 이름이 아닌 최종 결과만 읽어줘요. |
+| 🌗 **테마 · 접근성** | 오른쪽 위에서 🖥️ 시스템 · ☀️ 라이트 · 🌙 다크를 고를 수 있고, 고른 테마는 기억해요. 움직임 줄이기 설정을 존중하고, 화면 낭독기에는 회전 중 이름이 아닌 최종 결과만 읽어줘요. |
 
 ## 📸 화면
 
@@ -150,8 +150,9 @@ lunch-selector/
 │  ├─ select.js        # 그룹·업종·휴무 필터, 추첨
 │  ├─ animation.js     # 릴 · 폭죽 · 순차 페이드 인
 │  ├─ map.js           # 지오코딩 캐시 · 지도 핀 · 카카오맵 링크
+│  ├─ theme.js         # 시스템 · 라이트 · 다크 테마
 │  └─ app.js           # 화면 상태와 이벤트
-├─ tests/              # node:test 단위 테스트 56개
+├─ tests/              # node:test 단위 테스트 59개
 └─ docs/SETUP.md       # 설치·운영 가이드
 ```
 

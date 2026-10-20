@@ -5,11 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>오늘 점심 뭐 먹지</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍱</text></svg>">
+  <script>
+    // js/theme.js와 같은 키. 화면을 그리기 전에 적용해 테마가 깜빡이지 않게 한다.
+    try {
+      const theme = localStorage.getItem('lunch-selector:theme');
+      if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
+    } catch { /* 저장소를 못 쓰면 시스템 설정을 따른다 */ }
+  </script>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <main class="app">
-    <div id="modes" class="modes" role="group" aria-label="고를 것" hidden></div>
+    <div class="topbar">
+      <div id="modes" class="modes" role="group" aria-label="고를 것" hidden></div>
+      <div id="theme" class="theme-switch" role="group" aria-label="화면 테마"></div>
+    </div>
     <h1 id="heading">🍱 오늘 점심 뭐 먹지?</h1>
 
     <div class="filter-row">
