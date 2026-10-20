@@ -16,8 +16,8 @@ export const PUBLISH_URL =
  * 쓰는 방식의 값이 비어 있는 모드는 버튼에서 빠지고, 남은 모드가 하나면 버튼을 숨긴다.
  */
 export const MODES = [
-  { id: 'lunch', label: '🍱 점심', heading: '🍱 오늘 점심 뭐 먹지?', tab: '가게목록', gid: '0' },
-  { id: 'cafe', label: '☕ 카페', heading: '☕ 오늘 카페 어디 가지?', tab: '카페목록', gid: '' },
+  { id: 'lunch', label: '🍱 점심', heading: '🍱 오늘 점심 뭐 먹지?', tab: '점심메뉴', gid: '0' },
+  { id: 'cafe', label: '☕ 카페', heading: '☕ 오늘 카페 어디 가지?', tab: '다과(커피)메뉴', gid: '611891333' },
 ];
 
 /**

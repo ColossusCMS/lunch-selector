@@ -43,8 +43,8 @@ Google Sheets에 적어둔 가게 목록에서, 오늘 정기휴무인 곳을 �
 export const SHEET_ID = '...';     // 시트 주소의 /d/ 와 /edit 사이 값 (편집 링크용)
 export const PUBLISH_URL = '...';  // "웹에 게시" 주소에서 /pub 까지. 비우면 SHEET_ID로 gviz 방식
 export const MODES = [             // 상단 전환 버튼 = 시트 탭
-  { id: 'lunch', label: '🍱 점심', heading: '🍱 오늘 점심 뭐 먹지?', tab: '가게목록', gid: '0' },
-  { id: 'cafe',  label: '☕ 카페', heading: '☕ 오늘 카페 어디 가지?', tab: '카페목록', gid: '...' },
+  { id: 'lunch', label: '🍱 점심', heading: '🍱 오늘 점심 뭐 먹지?', tab: '점심메뉴', gid: '0' },
+  { id: 'cafe',  label: '☕ 카페', heading: '☕ 오늘 카페 어디 가지?', tab: '다과(커피)메뉴', gid: '611891333' },
 ];
 ```
 
