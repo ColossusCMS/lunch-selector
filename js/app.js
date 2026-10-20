@@ -1,16 +1,19 @@
 // 화면 초기화와 이벤트 처리.
 
-import { dataUrl, editUrl, KAKAO_MAP_KEY } from './config.js';
+import { modes, dataUrl, editUrl, KAKAO_MAP_KEY } from './config.js';
 import { loadStores } from './data.js';
 import { listGroups, listCategories, filterCandidates, closedToday, pickTop } from './select.js';
 import { spinReel, burstConfetti, revealInOrder, reducedMotion } from './animation.js';
 import { createMap, kakaoLink } from './map.js';
 
 const GROUP_KEY = 'lunch-selector:group';
+const MODE_KEY = 'lunch-selector:mode';
 const ALL_SAVED = '*'; // 저장소에서 '전체'를 나타내는 값
 
 const $ = (id) => document.getElementById(id);
 const els = {
+  heading: $('heading'),
+  modes: $('modes'),
   groups: $('groups'),
   categories: $('categories'),
   stage: $('stage'),
@@ -29,6 +32,8 @@ const els = {
 };
 
 const state = {
+  /** @type {import('./config.js').Mode} */
+  mode: null,
   /** @type {import('./stores.js').Store[]} */
   stores: [],
   /** @type {string | null} null이면 전체 */
@@ -40,6 +45,8 @@ const state = {
 };
 
 const map = createMap(KAKAO_MAP_KEY);
+/** 모드 id → 읽어온 가게 목록. 모드를 오가도 다시 받지 않는다. */
+const storeCache = new Map();
 
 const storage = {
   get(key) {
@@ -221,17 +228,51 @@ async function spin() {
   }
 }
 
+function renderModes() {
+  const list = modes();
+  els.modes.hidden = list.length < 2;
+  els.modes.replaceChildren(...list.map((mode) => {
+    const chip = makeChip(mode.label, mode.id, 'mode');
+    chip.classList.add('mode');
+    return chip;
+  }));
+}
+
+function selectMode(mode) {
+  state.mode = mode;
+  storage.set(MODE_KEY, mode.id);
+  for (const chip of els.modes.querySelectorAll('.chip')) {
+    chip.setAttribute('aria-pressed', String(chip.dataset.mode === mode.id));
+  }
+  els.heading.textContent = mode.heading;
+  document.title = mode.heading.replace(/^\S+\s/, ''); // 앞의 이모지 제외
+  const edit = editUrl(mode);
+  els.editLink.hidden = !edit;
+  if (edit) els.editLink.href = edit;
+  resetResult();
+  els.groups.replaceChildren();
+  els.categories.replaceChildren();
+  els.closed.hidden = true;
+  load();
+}
+
 async function load() {
+  const { mode } = state;
   setMessage('불러오는 중...');
   els.retry.hidden = true;
+  els.spin.disabled = true;
+  let stores;
   try {
-    state.stores = await loadStores(dataUrl());
+    stores = storeCache.get(mode.id) ?? (await loadStores(dataUrl(mode)));
   } catch (err) {
+    if (mode !== state.mode) return; // 그사이 다른 모드로 바뀜
     console.error(err);
     setMessage('가게 목록을 불러오지 못했어요');
     els.retry.hidden = false;
     return;
   }
+  if (mode !== state.mode) return;
+  state.stores = stores;
 
   const groups = listGroups(state.stores);
   if (groups.length === 0) {
@@ -239,6 +280,7 @@ async function load() {
     els.retry.hidden = false;
     return;
   }
+  storeCache.set(mode.id, stores); // 빈 시트는 다시 시도할 수 있게 기억하지 않는다
   const saved = storage.get(GROUP_KEY);
   const initial = saved === ALL_SAVED ? null : groups.includes(saved) ? saved : groups[0];
   state.group = initial;
@@ -265,13 +307,15 @@ els.categories.addEventListener('click', (event) => {
   resetResult();
 });
 
+els.modes.addEventListener('click', (event) => {
+  const chip = event.target.closest('.chip');
+  if (!chip || state.spinning || chip.dataset.mode === state.mode.id) return;
+  selectMode(modes().find((m) => m.id === chip.dataset.mode));
+});
+
 els.spin.addEventListener('click', spin);
 els.retry.addEventListener('click', load);
 
-const edit = editUrl();
-if (edit) {
-  els.editLink.href = edit;
-  els.editLink.hidden = false;
-}
-
-load();
+const savedMode = storage.get(MODE_KEY);
+renderModes();
+selectMode(modes().find((m) => m.id === savedMode) ?? modes()[0]);

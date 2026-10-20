@@ -37,6 +37,14 @@ body {
   padding: 24px 16px 40px;
 }
 
+.modes {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+.chip.mode { padding: 6px 18px; font-size: 0.95rem; }
+
 h1 {
   font-size: 1.5rem;
   text-align: center;

@@ -9,10 +9,11 @@
 </head>
 <body>
   <main class="app">
-    <h1>🍱 오늘 점심 뭐 먹지?</h1>
+    <div id="modes" class="modes" role="group" aria-label="고를 것" hidden></div>
+    <h1 id="heading">🍱 오늘 점심 뭐 먹지?</h1>
 
     <div class="filter-row">
-      <span class="filter-label" id="groups-label">점심 그룹</span>
+      <span class="filter-label" id="groups-label">그룹</span>
       <div id="groups" class="chips" role="group" aria-labelledby="groups-label"></div>
     </div>
 
