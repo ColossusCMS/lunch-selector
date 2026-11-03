@@ -19,7 +19,8 @@ test('parseDays: 모르는 값은 무시', (t) => {
 
 test('isEnabled', () => {
   for (const v of ['TRUE', 'true', '', 'Y', '아무거나']) assert.equal(isEnabled(v), true, v);
-  for (const v of ['FALSE', 'false', ' n ', 'N', '아니오', '0']) assert.equal(isEnabled(v), false, v);
+  for (const v of ['FALSE', 'false', ' n ', 'N', '아니오', '0',
+    '아니요', 'no', 'NO', 'x', 'X', '미사용', 'off', ' Off ']) assert.equal(isEnabled(v), false, v);
 });
 
 test('rowsToStores: 헤더 순서 무관·공백/BOM 헤더·모르는 열 무시·빈 가게명 건너뜀', () => {

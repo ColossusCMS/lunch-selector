@@ -1,7 +1,7 @@
 // 화면 초기화와 이벤트 처리.
 
-import { modes, dataUrl, editUrl, KAKAO_MAP_KEY } from './config.js';
-import { loadStores } from './data.js';
+import { modes, initialMode, dataUrl, editUrl, KAKAO_MAP_KEY } from './config.js';
+import { loadStores, createRequestCounter } from './data.js';
 import { listGroups, listCategories, filterCandidates, closedToday, pickTop } from './select.js';
 import { spinReel, burstConfetti, revealInOrder, reducedMotion } from './animation.js';
 import { createMap, kakaoLink } from './map.js';
@@ -49,6 +49,7 @@ const state = {
 const map = createMap(KAKAO_MAP_KEY);
 /** 모드 id → 읽어온 가게 목록. 모드를 오가도 다시 받지 않는다. */
 const storeCache = new Map();
+const loads = createRequestCounter();
 
 const storage = {
   get(key) {
@@ -279,6 +280,7 @@ function selectMode(mode) {
 }
 
 async function load() {
+  const id = loads.next();
   const { mode } = state;
   setMessage('불러오는 중...');
   els.retry.hidden = true;
@@ -287,13 +289,13 @@ async function load() {
   try {
     stores = storeCache.get(mode.id) ?? (await loadStores(dataUrl(mode)));
   } catch (err) {
-    if (mode !== state.mode) return; // 그사이 다른 모드로 바뀜
+    if (!loads.isLatest(id)) return; // 그사이 새 불러오기가 시작됨
     console.error(err);
     setMessage('가게 목록을 불러오지 못했어요');
     els.retry.hidden = false;
     return;
   }
-  if (mode !== state.mode) return;
+  if (!loads.isLatest(id)) return;
   state.stores = stores;
 
   const groups = listGroups(state.stores);
@@ -348,4 +350,10 @@ selectTheme(parseTheme(storage.get(THEME_KEY)));
 
 const savedMode = storage.get(MODE_KEY);
 renderModes();
-selectMode(modes().find((m) => m.id === savedMode) ?? modes()[0]);
+const first = initialMode(modes(), savedMode);
+if (first === null) {
+  setMessage('설정된 메뉴가 없어요');
+  els.spin.disabled = true;
+} else {
+  selectMode(first);
+}

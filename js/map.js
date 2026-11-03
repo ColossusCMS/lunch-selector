@@ -18,7 +18,7 @@ export function kakaoLink(name, point) {
 }
 
 /**
- * 주소 → 좌표 조회를 감싸 같은 주소는 다시 묻지 않는다. 실패는 null이고 캐시하지 않는다.
+ * 주소 → 좌표 조회를 감싸 같은 주소는 다시 묻지 않는다. 예외는 캐시하지 않고 다시 묻는다. 못 찾은 결과(null)는 캐시한다.
  * @param {(address: string) => Promise<Point | null>} lookup
  * @returns {(address: string) => Promise<Point | null>}
  */

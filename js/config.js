@@ -41,6 +41,15 @@ export function availableModes(modes, publishUrl) {
 }
 
 /**
+ * @param {Mode[]} list
+ * @param {string | null} savedId
+ * @returns {Mode | null}
+ */
+export function initialMode(list, savedId) {
+  return list.find((mode) => mode.id === savedId) ?? list[0] ?? null;
+}
+
+/**
  * @param {{ sheetId: string, publishUrl: string, mode: Mode }} opts
  * @returns {string}
  */

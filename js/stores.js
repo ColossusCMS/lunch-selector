@@ -3,7 +3,7 @@
 /** @typedef {{ name: string, categories: string[], groups: string[], closedDays: number[], enabled: boolean, memo: string, address: string }} Store */
 
 const DAY_CHARS = '일월화수목금토'; // Date#getDay() 순서
-const DISABLED_VALUES = ['false', 'n', '아니오', '0'];
+const DISABLED_VALUES = ['false', 'n', '아니오', '0', '아니요', 'no', 'x', '미사용', 'off'];
 
 const HEADERS = {
   name: '가게명',

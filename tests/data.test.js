@@ -1,10 +1,40 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { loadStores } from '../js/data.js';
-import { buildDataUrl, buildEditUrl, availableModes } from '../js/config.js';
+import { loadStores, createRequestCounter } from '../js/data.js';
+import { buildDataUrl, buildEditUrl, availableModes, initialMode } from '../js/config.js';
 
 const ok = (body) => async () => ({ ok: true, text: async () => body });
+
+test('initialMode: 저장값 > 첫 모드 > null', () => {
+  const list = [{ id: 'lunch' }, { id: 'cafe' }];
+  assert.equal(initialMode(list, 'cafe'), list[1]);
+  assert.equal(initialMode(list, 'gone'), list[0]);
+  assert.equal(initialMode(list, null), list[0]);
+  assert.equal(initialMode([], 'cafe'), null);
+});
+
+test('createRequestCounter: 마지막 번호만 최신', () => {
+  const c = createRequestCounter();
+  const a = c.next();
+  assert.equal(c.isLatest(a), true);
+  const b = c.next();
+  assert.equal(c.isLatest(a), false);
+  assert.equal(c.isLatest(b), true);
+});
+
+test('응답이 오지 않으면 제한 시간 뒤 throw', async () =>
+  assert.rejects(loadStores('x', () => new Promise(() => {}), { timeout: 20 }), /시간 초과/));
+
+test('본문이 오지 않아도 제한 시간 뒤 throw', async () =>
+  assert.rejects(loadStores('x', async () => ({ ok: true, text: () => new Promise(() => {}) }), { timeout: 20 }), /시간 초과/));
+
+test('fetch에 signal과 no-store를 넘긴다', async () => {
+  let opts;
+  await loadStores('x', async (_url, o) => { opts = o; return { ok: true, text: async () => '가게명,그룹\nA,G' }; });
+  assert.equal(opts.cache, 'no-store');
+  assert.ok(opts.signal instanceof AbortSignal);
+});
 
 test('정상 CSV', async () => {
   const s = await loadStores('x', ok('가게명,그룹\n본죽,2팀'));
