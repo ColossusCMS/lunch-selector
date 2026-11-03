@@ -27,6 +27,21 @@ export const MODES = [
  */
 export const KAKAO_MAP_KEY = 'c509755e4abe6ed93589ebd11fc0dcb7';
 
+export const RATING = {
+  // 구글 폼의 .../formResponse로 끝나는 전송 주소.
+  formUrl: 'https://docs.google.com/forms/d/e/1FAIpQLScpC8jPRQPfMx2tBS_RlzOKpHa5flSRJwOGyUrrd5NZ8Na3Nw/formResponse',
+  // 평점 탭을 "웹에 게시"한 전체 CSV 주소.
+  csvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQWy__V0_6ECJT2UuhK7vNYLbu0R5bF5tsjLofOgSu0uWXXLya3qnUOexOowE7Cksc-IXcMpg7hhkU0/pub?gid=918939752&single=true&output=csv',
+  // 폼의 미리 채워진 링크에서 찾은 질문별 entry.숫자 ID.
+  entries: { mode: 'entry.434634594', name: 'entry.1793193481', stars: 'entry.73675555', like: 'entry.2091000136' },
+};
+
+export function ratingEnabled(rating) {
+  return [rating?.formUrl, rating?.csvUrl,
+    ...['mode', 'name', 'stars', 'like'].map((key) => rating?.entries?.[key])]
+    .every((value) => typeof value === 'string' && value.trim().length > 0);
+}
+
 const SAMPLE_URL = 'data/sample-stores.csv';
 
 /** @typedef {{ id: string, label: string, heading: string, tab: string, gid: string }} Mode */

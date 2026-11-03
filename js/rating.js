@@ -1,0 +1,98 @@
+// 익명 평가의 집계와 마지막 추천 기록을 다룬다.
+
+/** @typedef {{ at: number, mode: string, names: string[] }} Pick */
+/** @typedef {{ likes: number, avg: number | null }} RatingStat */
+
+export const PICK_KEY = 'lunch-selector:last-pick';
+export const MIN_WAIT_MS = 30 * 60 * 1000;
+export const MAX_DAYS = 3;
+
+export function ratingKey(mode, name) {
+  return JSON.stringify([mode.trim(), name.trim()]);
+}
+
+/** @returns {Map<string, RatingStat>} */
+export function aggregateRatings(rows) {
+  const header = (rows[0] ?? []).map((s) => s.replace(/^\uFEFF/, '').trim());
+  const col = Object.fromEntries(['모드', '가게명', '별점', '좋아요'].map((s) => [s, header.indexOf(s)]));
+  const totals = new Map();
+  if (col.모드 === -1 || col.가게명 === -1) return totals;
+  for (const row of rows.slice(1)) {
+    const cell = (key) => (row[col[key]] ?? '').trim();
+    const mode = cell('모드');
+    const name = cell('가게명');
+    if (!mode || !name) continue;
+    const key = ratingKey(mode, name);
+    const total = totals.get(key) ?? { likes: 0, sum: 0, count: 0 };
+    if (/^[1-5]$/.test(cell('별점'))) {
+      total.sum += Number(cell('별점'));
+      total.count += 1;
+    }
+    if (cell('좋아요') === '1') total.likes += 1;
+    totals.set(key, total);
+  }
+  return new Map([...totals].map(([key, t]) => [key, {
+    likes: t.likes,
+    avg: t.count ? Math.round(t.sum / t.count * 10) / 10 : null,
+  }]));
+}
+
+export function formatBadge(stat) {
+  if (!stat || (stat.avg === null && stat.likes === 0)) return null;
+  const text = [];
+  const label = [];
+  if (stat.avg !== null) {
+    text.push(`★${stat.avg.toFixed(1)}`);
+    label.push(`평균 별점 ${stat.avg.toFixed(1)}점`);
+  }
+  if (stat.likes > 0) {
+    text.push(`👍${stat.likes}`);
+    label.push(`좋아요 ${stat.likes}개`);
+  }
+  return { text: text.join(' · '), label: label.join(', ') };
+}
+
+/** @returns {Pick | null} */
+export function parsePick(raw) {
+  try {
+    const p = JSON.parse(raw);
+    if (!p || !Number.isFinite(p.at) || !Number.isFinite(new Date(p.at).getTime())
+      || typeof p.mode !== 'string' || !p.mode.trim()
+      || !Array.isArray(p.names) || p.names.length < 1 || p.names.length > 3
+      || !p.names.every((n) => typeof n === 'string' && n.trim())) return null;
+    return { at: p.at, mode: p.mode, names: p.names };
+  } catch {
+    return null;
+  }
+}
+
+export function pickStatus(pick, now, modeIds) {
+  if (!modeIds.includes(pick.mode)) return 'drop';
+  const midnight = (ms) => {
+    const d = new Date(ms);
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  };
+  const days = Math.round((midnight(now) - midnight(pick.at)) / 86400000);
+  if (days < 0 || days > MAX_DAYS) return 'drop';
+  if (now - pick.at < MIN_WAIT_MS) return 'wait';
+  return 'ask';
+}
+
+export function buildRatingBody(entries, rating) {
+  return new URLSearchParams({
+    [entries.mode]: rating.mode,
+    [entries.name]: rating.name,
+    [entries.stars]: rating.stars === null ? '' : String(rating.stars),
+    [entries.like]: rating.like ? '1' : '',
+  });
+}
+
+export function applySendResults(saved, cardAt, sent, failed) {
+  if (!saved || saved.at !== cardAt) return saved;
+  const names = saved.names.filter((name) => failed.includes(name) && !sent.includes(name));
+  return names.length ? { ...saved, names } : null;
+}
+
+export function dropIfSame(saved, cardAt) {
+  return saved?.at === cardAt ? null : saved;
+}

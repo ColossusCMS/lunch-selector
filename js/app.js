@@ -1,15 +1,18 @@
 // 화면 초기화와 이벤트 처리.
 
-import { modes, initialMode, dataUrl, editUrl, KAKAO_MAP_KEY } from './config.js';
-import { loadStores, createRequestCounter } from './data.js';
+import { modes, initialMode, dataUrl, editUrl, KAKAO_MAP_KEY, RATING, ratingEnabled } from './config.js';
+import { loadStores, fetchCsvRows, createRequestCounter } from './data.js';
 import { listGroups, listCategories, filterCandidates, closedToday, pickTop } from './select.js';
 import { spinReel, burstConfetti, revealInOrder, reducedMotion } from './animation.js';
 import { createMap, kakaoLink } from './map.js';
 import { THEME_KEY, THEMES, parseTheme, applyTheme } from './theme.js';
+import { PICK_KEY, ratingKey, aggregateRatings, formatBadge, parsePick, pickStatus,
+  buildRatingBody, applySendResults, dropIfSame } from './rating.js';
 
 const GROUP_KEY = 'lunch-selector:group';
 const MODE_KEY = 'lunch-selector:mode';
 const ALL_SAVED = '*'; // 저장소에서 '전체'를 나타내는 값
+const ratingsOn = ratingEnabled(RATING);
 
 const $ = (id) => document.getElementById(id);
 const els = {
@@ -22,6 +25,8 @@ const els = {
   reel: $('reel'),
   reelSub: $('reel-sub'),
   reelLink: $('reel-link'),
+  reelRating: $('reel-rating'),
+  ratingDialog: $('rating-dialog'),
   announce: $('announce'),
   spin: $('spin'),
   rank2: $('rank2'),
@@ -42,6 +47,7 @@ const state = {
   group: null,
   categories: new Set(),
   spinning: false,
+  ratings: new Map(),
   /** 결과를 지울 때마다 늘어난다. 늦게 끝난 주소 조회가 지운 화면에 지도를 띄우지 않게 한다. */
   round: 0,
 };
@@ -57,6 +63,9 @@ const storage = {
   },
   set(key, value) {
     try { localStorage.setItem(key, value); } catch { /* 저장 불가 환경 무시 */ }
+  },
+  remove(key) {
+    try { localStorage.removeItem(key); } catch { /* 저장 불가 환경 무시 */ }
   },
 };
 
@@ -75,6 +84,8 @@ function resetResult() {
   els.reel.classList.remove('done');
   els.reelSub.textContent = '';
   els.reelLink.hidden = true;
+  els.reelRating.hidden = true;
+  els.stage.classList.remove('has-rating');
   els.map.hidden = true;
   els.map.classList.remove('show');
   els.announce.textContent = '';
@@ -101,7 +112,154 @@ function fillRank(el, label, store) {
     textContent: '📍 카카오맵',
   });
   el.replaceChildren(make('label', label), make('name', store.name), make('meta', describe(store)), link);
+  const badge = storeBadge(store);
+  if (badge) el.prepend(badge);
   el.hidden = false;
+}
+
+function storeBadge(store) {
+  if (!ratingsOn) return null;
+  const badge = formatBadge(state.ratings.get(ratingKey(state.mode.id, store.name)));
+  if (!badge) return null;
+  const el = document.createElement('span');
+  el.className = 'rating-badge';
+  el.textContent = badge.text;
+  el.setAttribute('aria-label', badge.label);
+  return el;
+}
+
+function savePick(pick) {
+  if (pick) storage.set(PICK_KEY, JSON.stringify(pick));
+  else storage.remove(PICK_KEY);
+}
+
+/** 모달은 열릴 때 읽은 추천을 유지하고, 저장값을 고칠 때만 현재 기록과 비교한다. */
+function showRatingCard(pick) {
+  const dialog = els.ratingDialog;
+  const mode = modes().find((m) => m.id === pick.mode);
+  const date = new Date(pick.at);
+  const title = document.createElement('h2');
+  title.id = 'rating-title';
+  title.textContent = `🍽️ ${date.getMonth() + 1}/${date.getDate()} ${mode.label.replace(/^\S+\s*/, '')} 추천, 다녀온 곳이 있으면 평가해 주세요`;
+  const button = (text, className = '') => Object.assign(document.createElement('button'), {
+    type: 'button', textContent: text, className,
+  });
+  const close = button('✕', 'rating-close');
+  close.setAttribute('aria-label', '다음에 평가하기');
+  let dismissTimer;
+  const dismiss = () => {
+    clearTimeout(dismissTimer);
+    if (dialog.open) dialog.close();
+  };
+  dialog.addEventListener('close', () => clearTimeout(dismissTimer), { once: true });
+  close.addEventListener('click', dismiss);
+  const later = button('다음에');
+  later.addEventListener('click', dismiss);
+  const send = button('보내기', 'rating-send');
+  const skip = button('안 갔어요');
+  const choices = pick.names.map((name) => ({ name, stars: null, like: false }));
+  const controls = [];
+  let sending = false;
+  const syncSend = () => { send.disabled = sending || !choices.some((c) => c.stars !== null || c.like); };
+  const rows = choices.map((choice) => {
+    const row = document.createElement('div');
+    row.className = 'rating-row';
+    const name = document.createElement('div');
+    name.className = 'rating-name';
+    name.textContent = choice.name;
+    const options = document.createElement('div');
+    options.className = 'rating-options';
+    options.setAttribute('role', 'group');
+    options.setAttribute('aria-label', `${choice.name} 평가`);
+    const stars = Array.from({ length: 5 }, (_, i) => {
+      const star = button('☆', 'rating-star');
+      star.setAttribute('aria-label', `별 ${i + 1}개`);
+      star.setAttribute('aria-pressed', 'false');
+      star.addEventListener('click', () => {
+        choice.stars = choice.stars === i + 1 ? null : i + 1;
+        stars.forEach((el, j) => {
+          el.textContent = j < choice.stars ? '★' : '☆';
+          el.setAttribute('aria-pressed', String(choice.stars === j + 1));
+        });
+        syncSend();
+      });
+      return star;
+    });
+    const like = button('👍', 'rating-like');
+    like.setAttribute('aria-label', '좋아요');
+    like.setAttribute('aria-pressed', 'false');
+    like.addEventListener('click', () => {
+      choice.like = !choice.like;
+      like.setAttribute('aria-pressed', String(choice.like));
+      syncSend();
+    });
+    controls.push(...stars, like);
+    options.append(...stars, like);
+    row.append(name, options);
+    return row;
+  });
+  skip.addEventListener('click', () => {
+    savePick(dropIfSame(parsePick(storage.get(PICK_KEY)), pick.at));
+    dialog.close();
+  });
+  const actions = document.createElement('div');
+  actions.className = 'rating-actions';
+  actions.append(send, skip, later);
+  const status = document.createElement('p');
+  status.className = 'rating-status';
+  status.setAttribute('role', 'status');
+  send.addEventListener('click', async () => {
+    if (send.disabled || sending) return;
+    sending = true;
+    syncSend();
+    for (const el of [...controls, skip]) el.disabled = true;
+    const sent = [];
+    const failed = [];
+    for (const choice of choices.filter((c) => c.stars !== null || c.like)) {
+      try {
+        await fetch(RATING.formUrl, {
+          method: 'POST', mode: 'no-cors',
+          body: buildRatingBody(RATING.entries, { ...choice, mode: pick.mode }),
+        });
+        sent.push(choice.name);
+      } catch {
+        failed.push(choice.name);
+      }
+    }
+    savePick(applySendResults(parsePick(storage.get(PICK_KEY)), pick.at, sent, failed));
+    status.textContent = failed.length
+      ? '보내지 못했어요. 다음에 다시 물어볼게요'
+      : '고마워요! 반영까지 몇 분 걸릴 수 있어요';
+    if (failed.length) {
+      actions.replaceChildren(later);
+      dialog.replaceChildren(title, status, actions);
+    } else {
+      const done = button('닫기', 'rating-send rating-done');
+      done.addEventListener('click', dismiss);
+      dialog.replaceChildren(close, title, status, done);
+      if (dialog.open) {
+        done.focus();
+        dismissTimer = setTimeout(dismiss, 3000);
+      }
+    }
+  });
+  syncSend();
+  dialog.replaceChildren(close, title, ...rows, actions, status);
+  // Esc는 브라우저 기본 cancel 동작으로 닫고, 저장값은 유지한다.
+  dialog.showModal();
+}
+
+function initRatings() {
+  if (!ratingsOn) return;
+  // 가게 목록과 독립적으로 읽는다. 늦게 도착한 평점은 다음 결과부터 쓴다.
+  fetchCsvRows(RATING.csvUrl)
+    .then((rows) => { state.ratings = aggregateRatings(rows); })
+    .catch((err) => { console.warn('평점을 불러오지 못했어요', err); });
+  const pick = parsePick(storage.get(PICK_KEY));
+  if (!pick) return;
+  const status = pickStatus(pick, Date.now(), modes().map((m) => m.id));
+  if (status === 'drop') storage.remove(PICK_KEY);
+  else if (status === 'ask') showRatingCard(pick);
 }
 
 /** 찾은 좌표로 링크를 고치고, 하나라도 찾았으면 지도에 핀을 찍는다. */
@@ -197,6 +355,16 @@ async function present(picks, candidates) {
   fillRank(els.rank2, '2순위', second);
   fillRank(els.rank3, '3순위', third);
   await spinReel(els.reel, candidates.map((s) => s.name), first.name, calm ? 0 : 2000);
+  if (ratingsOn) {
+    savePick({ at: Date.now(), mode: state.mode.id, names: picks.map((s) => s.name) });
+    const badge = storeBadge(first);
+    if (badge) {
+      els.reelRating.textContent = badge.textContent;
+      els.reelRating.setAttribute('aria-label', badge.getAttribute('aria-label'));
+      els.reelRating.hidden = false;
+      els.stage.classList.add('has-rating');
+    }
+  }
   els.reelSub.textContent = describe(first);
   els.reelLink.href = kakaoLink(first.name, null);
   els.reelLink.hidden = false;
@@ -347,6 +515,7 @@ els.retry.addEventListener('click', load);
 
 renderThemes();
 selectTheme(parseTheme(storage.get(THEME_KEY)));
+initRatings();
 
 const savedMode = storage.get(MODE_KEY);
 renderModes();

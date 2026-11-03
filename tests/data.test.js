@@ -1,10 +1,27 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { loadStores, createRequestCounter } from '../js/data.js';
-import { buildDataUrl, buildEditUrl, availableModes, initialMode } from '../js/config.js';
+import { loadStores, fetchCsvRows, createRequestCounter } from '../js/data.js';
+import { buildDataUrl, buildEditUrl, availableModes, initialMode, ratingEnabled } from '../js/config.js';
 
 const ok = (body) => async () => ({ ok: true, text: async () => body });
+
+test('ratingEnabled: 모든 설정이 채워져야 켜진다', () => {
+  const rating = { formUrl: 'form', csvUrl: 'csv', entries: { mode: 'entry.1', name: 'entry.2', stars: 'entry.3', like: 'entry.4' } };
+  assert.equal(ratingEnabled(rating), true);
+  assert.equal(ratingEnabled({ ...rating, entries: { ...rating.entries, like: '' } }), false);
+  assert.equal(ratingEnabled({ ...rating, formUrl: ' ' }), false);
+  const empty = { formUrl: '', csvUrl: '', entries: { mode: '', name: '', stars: '', like: '' } };
+  assert.equal(ratingEnabled(empty), false);
+});
+
+test('fetchCsvRows: CSV를 행 배열로 읽는다', async () => {
+  assert.deepEqual(await fetchCsvRows('x', ok('a,b\n1,2')), [['a', 'b'], ['1', '2']]);
+});
+
+test('fetchCsvRows: 응답이 없으면 제한 시간 뒤 reject', async () => {
+  await assert.rejects(fetchCsvRows('x', () => new Promise(() => {}), { timeout: 20 }), /시간 초과/);
+});
 
 test('initialMode: 저장값 > 첫 모드 > null', () => {
   const list = [{ id: 'lunch' }, { id: 'cafe' }];
