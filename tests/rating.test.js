@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { ratingKey, aggregateRatings, formatBadge, parsePick, pickStatus, buildRatingBody, applySendResults, dropIfSame } from '../js/rating.js';
+import { ratingKey, aggregateRatings, cardTier, formatStatLine, parsePick, pickStatus, buildRatingBody, applySendResults, dropIfSame } from '../js/rating.js';
 test('aggregateRatings: 헤더 이름으로 읽고 모드+가게명으로 묶는다', () => {
   const rows = [
     ['타임스탬프', '가게명', '좋아요', '모드', '별점', '기타'],   // 순서 뒤섞임 + 여분 열
@@ -11,8 +11,8 @@ test('aggregateRatings: 헤더 이름으로 읽고 모드+가게명으로 묶는
     ['t', '본죽', 'x', 'lunch', '9', ''],                          // 잘못된 값: 둘 다 무시
   ];
   const m = aggregateRatings(rows);
-  assert.deepEqual(m.get(ratingKey('lunch', '본죽')), { likes: 2, avg: 4.5 });
-  assert.deepEqual(m.get(ratingKey('cafe', '본죽')), { likes: 1, avg: 3 });
+  assert.deepEqual(m.get(ratingKey('lunch', '본죽')), { likes: 2, avg: 4.5, count: 2 });
+  assert.deepEqual(m.get(ratingKey('cafe', '본죽')), { likes: 1, avg: 3, count: 1 });
 });
 test('aggregateRatings: 빈 입력·필수 헤더 없음 → 빈 Map', () => {
   assert.equal(aggregateRatings([]).size, 0);
@@ -22,12 +22,29 @@ test('aggregateRatings: 평균은 소수 첫째 자리 반올림', () => {
   const rows = [['모드', '가게명', '별점', '좋아요'], ['l', 'A', '4', ''], ['l', 'A', '4', ''], ['l', 'A', '5', '']];
   assert.equal(aggregateRatings(rows).get(ratingKey('l', 'A')).avg, 4.3);
 });
-test('formatBadge', () => {
-  assert.deepEqual(formatBadge({ likes: 12, avg: 4.2 }), { text: '★4.2 · 👍12', label: '평균 별점 4.2점, 좋아요 12개' });
-  assert.deepEqual(formatBadge({ likes: 3, avg: null }), { text: '👍3', label: '좋아요 3개' });
-  assert.deepEqual(formatBadge({ likes: 0, avg: 5 }), { text: '★5.0', label: '평균 별점 5.0점' });
-  assert.equal(formatBadge({ likes: 0, avg: null }), null);
-  assert.equal(formatBadge(undefined), null);
+test('formatStatLine', () => {
+  assert.deepEqual(formatStatLine({ likes: 12, avg: 4.2, count: 5 }, 'ruby', 'big'), { text: '★4.2 · 👍12', label: '평균 별점 4.2점, 좋아요 12개' });
+  assert.deepEqual(formatStatLine({ likes: 0, avg: 3.5, count: 2 }, 'emerald', 'small'), { text: '★3.5', label: '평균 별점 3.5점' });
+  assert.deepEqual(formatStatLine({ likes: 3, avg: 5, count: 1 }, 'unknown', 'big'), { text: '👍3 · 평가 부족', label: '좋아요 3개, 평가 부족' });
+  assert.deepEqual(formatStatLine(undefined, 'unknown', 'big'), { text: '아직 평가가 부족해요', label: '아직 평가가 부족해요' });
+  assert.deepEqual(formatStatLine(undefined, 'unknown', 'small'), { text: '평가 부족', label: '아직 평가가 부족해요' });
+});
+
+test('cardTier: 건수와 반올림 평균 경계', () => {
+  assert.equal(cardTier(undefined).id, 'unknown');
+  assert.equal(cardTier({ likes: 9, avg: 5, count: 1 }).id, 'unknown');
+  for (const [avg, id] of [[2.9, 'stone'], [3, 'emerald'], [4, 'ruby'], [4.4, 'ruby'], [4.5, 'diamond']]) {
+    assert.equal(cardTier({ likes: 0, avg, count: 2 }).id, id);
+  }
+  const rows = [['모드', '가게명', '별점', '좋아요'], ...Array.from({ length: 20 }, (_, i) => ['l', 'A', i < 9 ? '5' : '4', ''])];
+  const stat = aggregateRatings(rows).get(ratingKey('l', 'A'));
+  assert.equal(stat.avg, 4.5);
+  assert.equal(cardTier(stat).id, 'diamond');
+});
+
+test('aggregateRatings: count는 유효 별점 개수', () => {
+  const rows = [['모드', '가게명', '별점', '좋아요'], ['l', 'A', '4', '1'], ['l', 'A', '', '1'], ['l', 'A', '9', ''], ['l', 'A', '5', '']];
+  assert.deepEqual(aggregateRatings(rows).get(ratingKey('l', 'A')), { likes: 2, avg: 4.5, count: 2 });
 });
 test('parsePick: 정상·깨진 값', () => {
   assert.deepEqual(parsePick('{"at":1,"mode":"lunch","names":["A"]}'), { at: 1, mode: 'lunch', names: ['A'] });

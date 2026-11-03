@@ -45,6 +45,7 @@ export function spinReel(el, names, final, duration = 2000) {
 export function burstConfetti(count = 120) {
   const layer = document.createElement('div');
   layer.className = 'confetti-layer';
+  layer.setAttribute('aria-hidden', 'true');
   for (let i = 0; i < count; i++) {
     const piece = document.createElement('span');
     piece.className = 'confetti';

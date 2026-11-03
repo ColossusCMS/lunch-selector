@@ -33,10 +33,16 @@
     </div>
 
     <section class="stage" id="stage">
-      <div id="reel" class="reel">?</div>
-      <span id="reel-rating" class="rating-badge" hidden></span>
-      <div id="reel-sub" class="reel-sub"></div>
-      <a id="reel-link" class="map-link" target="_blank" rel="noopener" hidden>📍 카카오맵</a>
+      <div class="card-flip" id="card-flip">
+        <div class="card-back" id="card-back">
+          <div class="back-inner">
+            <span class="back-utensils" aria-hidden="true">🍴</span>
+            <div id="spin-name" class="spin-name" aria-hidden="true">?</div>
+            <div id="back-hint" class="back-hint">돌려서 오늘의 카드를 확인하세요</div>
+          </div>
+        </div>
+        <article id="rank1" class="gacha-card big rank-1 tier-none card-front" aria-hidden="true" inert></article>
+      </div>
     </section>
 
     <button id="spin" class="spin" type="button" disabled>🎰 돌리기</button>

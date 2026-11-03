@@ -3,10 +3,10 @@
 import { modes, initialMode, dataUrl, editUrl, KAKAO_MAP_KEY, RATING, ratingEnabled } from './config.js';
 import { loadStores, fetchCsvRows, createRequestCounter } from './data.js';
 import { listGroups, listCategories, filterCandidates, closedToday, pickTop } from './select.js';
-import { spinReel, burstConfetti, revealInOrder, reducedMotion } from './animation.js';
+import { spinReel, burstConfetti, reducedMotion } from './animation.js';
 import { createMap, kakaoLink } from './map.js';
 import { THEME_KEY, THEMES, parseTheme, applyTheme } from './theme.js';
-import { PICK_KEY, ratingKey, aggregateRatings, formatBadge, parsePick, pickStatus,
+import { PICK_KEY, ratingKey, aggregateRatings, cardTier, formatStatLine, parsePick, pickStatus,
   buildRatingBody, applySendResults, dropIfSame } from './rating.js';
 
 const GROUP_KEY = 'lunch-selector:group';
@@ -22,10 +22,11 @@ const els = {
   groups: $('groups'),
   categories: $('categories'),
   stage: $('stage'),
-  reel: $('reel'),
-  reelSub: $('reel-sub'),
-  reelLink: $('reel-link'),
-  reelRating: $('reel-rating'),
+  spinName: $('spin-name'),
+  backHint: $('back-hint'),
+  cardBack: $('card-back'),
+  cardFlip: $('card-flip'),
+  rank1: $('rank1'),
   ratingDialog: $('rating-dialog'),
   announce: $('announce'),
   spin: $('spin'),
@@ -47,7 +48,7 @@ const state = {
   group: null,
   categories: new Set(),
   spinning: false,
-  ratings: new Map(),
+  ratings: null,
   /** 결과를 지울 때마다 늘어난다. 늦게 끝난 주소 조회가 지운 화면에 지도를 띄우지 않게 한다. */
   round: 0,
 };
@@ -80,12 +81,16 @@ function setMessage(text) {
 
 function resetResult() {
   state.round += 1;
-  els.reel.textContent = '?';
-  els.reel.classList.remove('done');
-  els.reelSub.textContent = '';
-  els.reelLink.hidden = true;
-  els.reelRating.hidden = true;
-  els.stage.classList.remove('has-rating');
+  els.spinName.textContent = '?';
+  els.spinName.classList.remove('done');
+  els.backHint.hidden = false;
+  els.cardFlip.classList.remove('revealed');
+  els.cardBack.removeAttribute('aria-hidden');
+  els.cardBack.classList.remove('spinning');
+  els.rank1.setAttribute('aria-hidden', 'true');
+  els.rank1.inert = true;
+  els.rank1.replaceChildren();
+  els.rank1.className = 'gacha-card big rank-1 tier-none card-front';
   els.map.hidden = true;
   els.map.classList.remove('show');
   els.announce.textContent = '';
@@ -98,12 +103,51 @@ function resetResult() {
   setMessage('');
 }
 
-function fillRank(el, label, store) {
+function fillCard(el, rank, store) {
   if (!store) {
     el.hidden = true;
     return;
   }
   const make = (cls, text) => Object.assign(document.createElement('div'), { className: cls, textContent: text });
+  const size = rank === 1 ? 'big' : 'small';
+  const stat = state.ratings?.get(ratingKey(state.mode.id, store.name));
+  const tier = state.ratings === null ? null : cardTier(stat);
+  el.className = `gacha-card ${size} rank-${rank} tier-${tier?.id ?? 'none'} ${rank === 1 ? 'card-front' : 'rank'}`;
+  el.dataset.tier = tier?.id ?? 'none';
+  el.setAttribute('aria-label', `${rank}순위 ${store.name}`);
+  const medal = make('card-medal', ['🥇', '🥈', '🥉'][rank - 1]);
+  medal.setAttribute('aria-hidden', 'true');
+  const inner = make('card-inner', '');
+  if (tier) inner.append(make('card-tier', tier.label));
+  if (tier?.id === 'unknown') {
+    const watermark = make('card-watermark', '?');
+    watermark.setAttribute('aria-hidden', 'true');
+    inner.append(watermark);
+  }
+  if (tier?.id === 'emerald') {
+    const gem = make('card-crystal', '');
+    gem.setAttribute('aria-hidden', 'true');
+    inner.append(gem);
+  }
+  if (tier?.id === 'ruby' || tier?.id === 'diamond') {
+    for (let i = 0; i < (tier.id === 'diamond' ? 3 : 2); i++) {
+      const spark = make(`card-spark spark-${i}`, '');
+      spark.setAttribute('aria-hidden', 'true');
+      inner.append(spark);
+    }
+    if (tier.id === 'diamond') {
+      const sweep = make('card-sweep', '');
+      sweep.setAttribute('aria-hidden', 'true');
+      inner.append(sweep);
+    }
+  }
+  inner.append(make('card-name', store.name), make('card-meta', describe(store)));
+  if (tier) {
+    const line = formatStatLine(stat, tier.id, size);
+    const text = make('card-stat', line.text);
+    text.setAttribute('aria-label', line.label);
+    inner.append(text);
+  }
   const link = Object.assign(document.createElement('a'), {
     className: 'map-link',
     href: kakaoLink(store.name, null),
@@ -111,21 +155,13 @@ function fillRank(el, label, store) {
     rel: 'noopener',
     textContent: '📍 카카오맵',
   });
-  el.replaceChildren(make('label', label), make('name', store.name), make('meta', describe(store)), link);
-  const badge = storeBadge(store);
-  if (badge) el.prepend(badge);
-  el.hidden = false;
-}
-
-function storeBadge(store) {
-  if (!ratingsOn) return null;
-  const badge = formatBadge(state.ratings.get(ratingKey(state.mode.id, store.name)));
-  if (!badge) return null;
-  const el = document.createElement('span');
-  el.className = 'rating-badge';
-  el.textContent = badge.text;
-  el.setAttribute('aria-label', badge.label);
-  return el;
+  inner.append(link);
+  el.replaceChildren(medal, inner);
+  if (rank === 1 && tier?.id === 'unknown') {
+    const veil = make('card-veil', '?');
+    veil.setAttribute('aria-hidden', 'true');
+    el.append(veil);
+  }
 }
 
 function savePick(pick) {
@@ -266,7 +302,7 @@ function initRatings() {
 async function showOnMap(picks, located, round) {
   const points = await located;
   if (round !== state.round) return;
-  const links = [els.reelLink, ...[els.rank2, els.rank3].map((el) => el.querySelector('.map-link'))];
+  const links = [els.rank1, els.rank2, els.rank3].map((el) => el.querySelector('.map-link'));
   picks.forEach((store, i) => {
     if (links[i]) links[i].href = kakaoLink(store.name, points[i]);
   });
@@ -345,33 +381,59 @@ function selectGroup(group) {
   resetResult();
 }
 
-/** 감속 릴 → 1순위 강조·폭죽 → 2·3순위 순차 페이드 인 */
+/** 이름 회전이 끝나면 ?로 멈춘 뒤 2·3순위, 마지막으로 1순위를 공개한다. */
 async function present(picks, candidates) {
   const [first, second, third] = picks;
   const calm = reducedMotion();
   const round = state.round;
   // 릴이 도는 동안 미리 주소를 조회해 둔다.
   const located = map.enabled ? Promise.all(picks.map((s) => map.locate(s.address))) : null;
-  fillRank(els.rank2, '2순위', second);
-  fillRank(els.rank3, '3순위', third);
-  await spinReel(els.reel, candidates.map((s) => s.name), first.name, calm ? 0 : 2000);
+  fillCard(els.rank1, 1, first);
+  fillCard(els.rank2, 2, second);
+  fillCard(els.rank3, 3, third);
+  const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  const revealRanks = async () => {
+    for (const el of [els.rank2, els.rank3]) {
+      if (el.childElementCount === 0) continue;
+      if (!calm) await wait(240);
+      if (round !== state.round) return;
+      el.hidden = false;
+      if (!calm) await new Promise(requestAnimationFrame);
+      el.classList.add('show');
+    }
+  };
+  els.backHint.hidden = true;
+  if (calm) {
+    await revealRanks();
+  } else {
+    els.cardBack.classList.add('spinning');
+    // 최종 결과 이름 대신 ?에서 멈춰 1순위가 앞면 공개 전에 드러나지 않게 한다.
+    await spinReel(els.spinName, candidates.map((s) => s.name), '?', 2000);
+    if (round !== state.round) return;
+    els.cardBack.classList.remove('spinning');
+    await revealRanks();
+    await wait(120);
+  }
+  if (round !== state.round) return;
+  els.cardFlip.classList.add('revealed');
+  if (!calm) await wait(280);
+  if (round !== state.round) return;
+  els.rank1.removeAttribute('aria-hidden');
+  els.rank1.inert = false;
+  els.cardBack.setAttribute('aria-hidden', 'true');
+  els.rank1.classList.add('unveiled');
   if (ratingsOn) {
     savePick({ at: Date.now(), mode: state.mode.id, names: picks.map((s) => s.name) });
-    const badge = storeBadge(first);
-    if (badge) {
-      els.reelRating.textContent = badge.textContent;
-      els.reelRating.setAttribute('aria-label', badge.getAttribute('aria-label'));
-      els.reelRating.hidden = false;
-      els.stage.classList.add('has-rating');
-    }
   }
-  els.reelSub.textContent = describe(first);
-  els.reelLink.href = kakaoLink(first.name, null);
-  els.reelLink.hidden = false;
   // 화면 낭독기는 회전 중 이름이 아니라 최종 결과만 한 번 읽는다.
-  els.announce.textContent = picks.map((s, i) => `${i + 1}순위 ${s.name}`).join(', ');
+  els.announce.textContent = picks.map((s, i) => {
+    const id = [els.rank1, els.rank2, els.rank3][i].dataset.tier;
+    const label = id === 'none' ? '' : `(${cardTier(state.ratings?.get(ratingKey(state.mode.id, s.name))).label.replace(/^\S+\s/, '')})`;
+    return `${i + 1}순위 ${s.name}${label}`;
+  }).join(', ');
   if (!calm) burstConfetti();
-  await revealInOrder([els.rank2, els.rank3].filter((el) => !el.hidden), calm ? 0 : 350);
+  if (!calm) await wait(320);
+  if (round !== state.round) return;
   if (located) showOnMap(picks, located, round);
 }
 

@@ -1,11 +1,24 @@
 // 익명 평가의 집계와 마지막 추천 기록을 다룬다.
 
 /** @typedef {{ at: number, mode: string, names: string[] }} Pick */
-/** @typedef {{ likes: number, avg: number | null }} RatingStat */
+/** @typedef {{ likes: number, avg: number | null, count: number }} RatingStat */
 
 export const PICK_KEY = 'lunch-selector:last-pick';
 export const MIN_WAIT_MS = 30 * 60 * 1000;
 export const MAX_DAYS = 3;
+export const TIER_MIN_COUNT = 2;
+export const TIERS = [
+  { id: 'diamond', label: '💎 다이아', min: 4.5 },
+  { id: 'ruby', label: '❤️ 루비', min: 4.0 },
+  { id: 'emerald', label: '💚 에메랄드', min: 3.0 },
+  { id: 'stone', label: '🪨 원석', min: -Infinity },
+];
+export const UNKNOWN_TIER = { id: 'unknown', label: '❔ 미확인' };
+
+export function cardTier(stat) {
+  if (!stat || stat.count < TIER_MIN_COUNT || stat.avg === null) return UNKNOWN_TIER;
+  return TIERS.find((tier) => stat.avg >= tier.min);
+}
 
 export function ratingKey(mode, name) {
   return JSON.stringify([mode.trim(), name.trim()]);
@@ -33,19 +46,23 @@ export function aggregateRatings(rows) {
   }
   return new Map([...totals].map(([key, t]) => [key, {
     likes: t.likes,
+    count: t.count,
     avg: t.count ? Math.round(t.sum / t.count * 10) / 10 : null,
   }]));
 }
 
-export function formatBadge(stat) {
-  if (!stat || (stat.avg === null && stat.likes === 0)) return null;
+export function formatStatLine(stat, tierId, size) {
+  if (tierId === 'unknown') {
+    if (stat?.likes > 0) return { text: `👍${stat.likes} · 평가 부족`, label: `좋아요 ${stat.likes}개, 평가 부족` };
+    return { text: size === 'small' ? '평가 부족' : '아직 평가가 부족해요', label: '아직 평가가 부족해요' };
+  }
   const text = [];
   const label = [];
-  if (stat.avg !== null) {
+  if (stat?.avg != null) {
     text.push(`★${stat.avg.toFixed(1)}`);
     label.push(`평균 별점 ${stat.avg.toFixed(1)}점`);
   }
-  if (stat.likes > 0) {
+  if (stat?.likes > 0) {
     text.push(`👍${stat.likes}`);
     label.push(`좋아요 ${stat.likes}개`);
   }

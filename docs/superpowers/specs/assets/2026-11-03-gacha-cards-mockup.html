@@ -1,0 +1,97 @@
+<style>
+  .board { background:#fdf8f2; border-radius:14px; padding:18px; font-family:system-ui,sans-serif; color:#2b2420; }
+  .board.dark { background:#1c1917; color:#f5f0eb; }
+  .row { display:flex; gap:22px; flex-wrap:wrap; align-items:flex-start; margin:10px 0 26px; }
+  .cap { font-size:.75rem; color:#8a7d72; text-align:center; margin-top:8px; }
+
+  /* 공통 카드 */
+  .card { position:relative; border-radius:14px; padding:3px; isolation:isolate; }
+  .card .in { position:relative; border-radius:11px; overflow:hidden; height:100%; display:flex; flex-direction:column; justify-content:center; text-align:center; }
+  .big { width:300px; height:170px; }
+  .small { width:150px; height:132px; }
+  .name { font-weight:800; margin:2px 0; }
+  .big .name { font-size:1.6rem; } .small .name { font-size:1rem; }
+  .meta { font-size:.72rem; opacity:.75; }
+  .stat { font-size:.72rem; margin-top:4px; font-weight:700; }
+  .tier { position:absolute; left:8px; top:7px; font-size:.62rem; font-weight:800; letter-spacing:.04em; padding:2px 7px; border-radius:999px; }
+  .medal { position:absolute; right:-6px; top:-8px; font-size:1.5rem; z-index:3; filter:drop-shadow(0 2px 2px rgba(0,0,0,.3)); }
+  .small .medal { font-size:1.2rem; }
+
+  /* 순위 외곽 빛 (금·은·동) */
+  .r1 { box-shadow:0 0 22px 6px rgba(255,196,40,.55); }
+  .r2 { box-shadow:0 0 16px 4px rgba(200,205,215,.75); }
+  .r3 { box-shadow:0 0 16px 4px rgba(205,127,50,.55); }
+
+  /* 미확인 */
+  .t-unk { background:repeating-linear-gradient(45deg,#6b6460 0 6px,#857d78 6px 12px); }
+  .t-unk .in { background:#3a3532; color:#e9e2dc; }
+  .t-unk .in::before { content:'?'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:7rem; font-weight:900; color:rgba(255,255,255,.06); }
+  .t-unk .tier { background:#555; color:#ddd; }
+
+  /* 원석 */
+  .t-stone { background:linear-gradient(135deg,#bdb6ae,#8f8780); }
+  .t-stone .in { background:radial-gradient(circle at 30% 20%,#fbf8f4,#ece6df); }
+  .t-stone .tier { background:#8f8780; color:#fff; }
+
+  /* 에메랄드 */
+  .t-emerald { background:linear-gradient(135deg,#7ef0b5,#0f9d58 45%,#0b6b3c); }
+  .t-emerald .in { background:linear-gradient(160deg,#f2fff8,#d7f5e5); }
+  .t-emerald .in::after { content:''; position:absolute; right:-20px; bottom:-20px; width:80px; height:80px; background:conic-gradient(from 45deg,#b9f5d3,#3ccf86,#b9f5d3,#3ccf86,#b9f5d3); opacity:.35; transform:rotate(45deg); }
+  .t-emerald .tier { background:#0f9d58; color:#fff; }
+
+  /* 루비 */
+  .t-ruby { background:linear-gradient(135deg,#ff8aa0,#d6123c 45%,#7a0820); }
+  .t-ruby .in { background:radial-gradient(circle at 50% 0%,#fff3f5,#ffd9e0 70%); }
+  .t-ruby .in::before { content:''; position:absolute; inset:5px; border:1px solid rgba(214,18,60,.35); border-radius:8px; }
+  .t-ruby .spark { position:absolute; width:4px; height:4px; background:#fff; border-radius:50%; box-shadow:0 0 6px 2px #ff6a88; animation:tw 1.6s infinite; }
+  .t-ruby .tier { background:#d6123c; color:#fff; }
+
+  /* 다이아 */
+  .t-dia { background:conic-gradient(from var(--a,0deg),#9be7ff,#e7b6ff,#fff3a6,#a6ffd8,#9be7ff); animation:spin 4s linear infinite; }
+  .t-dia .in { background:linear-gradient(160deg,#f6fdff,#e3f4ff 60%,#f4e9ff); }
+  .t-dia .in::after { content:''; position:absolute; top:0; left:-60%; width:40%; height:100%; background:linear-gradient(100deg,transparent,rgba(255,255,255,.85),transparent); animation:sweep 2.6s infinite; }
+  .t-dia .tier { background:linear-gradient(90deg,#5ac8fa,#b18cff); color:#fff; }
+  .t-dia .spark { position:absolute; width:5px; height:5px; background:#fff; transform:rotate(45deg); box-shadow:0 0 8px 2px #9be7ff; animation:tw 1.4s infinite; }
+
+  @property --a { syntax:'<angle>'; inherits:false; initial-value:0deg; }
+  @keyframes spin { to { --a:360deg; } }
+  @keyframes sweep { to { left:130%; } }
+  @keyframes tw { 0%,100% { opacity:.2; transform:scale(.6) rotate(45deg);} 50% { opacity:1; transform:scale(1.2) rotate(45deg);} }
+
+  .dark .t-stone .in { background:radial-gradient(circle at 30% 20%,#3b3632,#2a2622); color:#f5f0eb; }
+  .dark .t-emerald .in { background:linear-gradient(160deg,#10301f,#0b2116); color:#e6fff1; }
+  .dark .t-ruby .in { background:radial-gradient(circle at 50% 0%,#3a1018,#240a10 70%); color:#ffe9ee; }
+  .dark .t-dia .in { background:linear-gradient(160deg,#122635,#101a2a 60%,#1e1530); color:#eef8ff; }
+</style>
+
+<h2>등급별 카드 시안 v1 — 사진 없이 텍스트 + 테두리·빛·무늬로</h2>
+<p class="subtitle">위: 1순위(큰 카드) 5등급 · 아래: 2·3순위(작은 카드) 5등급. 외곽 빛은 순위(금·은·동), 테두리·배경·움직임은 등급. 마지막 줄은 다크 테마.</p>
+
+<div class="board">
+  <h3>1순위 (금빛 외곽 + 🥇)</h3>
+  <div class="row">
+    <div><div class="card big r1 t-unk"><span class="medal">🥇</span><div class="in"><span class="tier">❔ 미확인</span><div class="name">본죽</div><div class="meta">한식 · 3층</div><div class="stat">아직 평가가 부족해요</div></div></div><div class="cap">미확인 — 줄무늬 테두리, 어두운 바탕, 큰 ? 워터마크</div></div>
+    <div><div class="card big r1 t-stone"><span class="medal">🥇</span><div class="in"><span class="tier">🪨 원석</span><div class="name">본죽</div><div class="meta">한식 · 3층</div><div class="stat">★2.7 · 👍3</div></div></div><div class="cap">원석 — 회색 돌 테두리, 단순</div></div>
+    <div><div class="card big r1 t-emerald"><span class="medal">🥇</span><div class="in"><span class="tier">💚 에메랄드</span><div class="name">본죽</div><div class="meta">한식 · 3층</div><div class="stat">★3.6 · 👍5</div></div></div><div class="cap">에메랄드 — 초록 보석 테두리, 모서리 결정 무늬</div></div>
+    <div><div class="card big r1 t-ruby"><span class="medal">🥇</span><div class="in"><span class="tier">❤️ 루비</span><span class="spark" style="left:20%;top:30%"></span><span class="spark" style="left:80%;top:65%;animation-delay:.6s"></span><div class="name">본죽</div><div class="meta">한식 · 3층</div><div class="stat">★4.2 · 👍12</div></div></div><div class="cap">루비 — 진한 빨강, 이중 테두리, 반짝임 2개</div></div>
+    <div><div class="card big r1 t-dia"><span class="medal">🥇</span><div class="in"><span class="tier">💎 다이아</span><span class="spark" style="left:15%;top:25%"></span><span class="spark" style="left:85%;top:30%;animation-delay:.5s"></span><span class="spark" style="left:70%;top:80%;animation-delay:.9s"></span><div class="name">본죽</div><div class="meta">한식 · 3층</div><div class="stat">★4.8 · 👍27</div></div></div><div class="cap">다이아 — 무지개 테두리가 돌고, 빛줄기가 훑고 지나감</div></div>
+  </div>
+
+  <h3>2·3순위 (은빛 🥈 / 동빛 🥉)</h3>
+  <div class="row">
+    <div><div class="card small r2 t-unk"><span class="medal">🥈</span><div class="in"><span class="tier">❔ 미확인</span><div class="name">김밥천국</div><div class="meta">분식</div><div class="stat">평가 부족</div></div></div></div>
+    <div><div class="card small r3 t-stone"><span class="medal">🥉</span><div class="in"><span class="tier">🪨 원석</span><div class="name">김밥천국</div><div class="meta">분식</div><div class="stat">★2.7 · 👍3</div></div></div></div>
+    <div><div class="card small r2 t-emerald"><span class="medal">🥈</span><div class="in"><span class="tier">💚 에메랄드</span><div class="name">김밥천국</div><div class="meta">분식</div><div class="stat">★3.6 · 👍5</div></div></div></div>
+    <div><div class="card small r3 t-ruby"><span class="medal">🥉</span><div class="in"><span class="tier">❤️ 루비</span><span class="spark" style="left:20%;top:40%"></span><div class="name">김밥천국</div><div class="meta">분식</div><div class="stat">★4.2 · 👍12</div></div></div></div>
+    <div><div class="card small r3 t-dia"><span class="medal">🥉</span><div class="in"><span class="tier">💎 다이아</span><span class="spark" style="left:80%;top:30%"></span><div class="name">김밥천국</div><div class="meta">분식</div><div class="stat">★4.8 · 👍27</div></div></div></div>
+  </div>
+</div>
+
+<div class="board dark" style="margin-top:14px">
+  <h3>다크 테마</h3>
+  <div class="row">
+    <div class="card big r1 t-dia"><span class="medal">🥇</span><div class="in"><span class="tier">💎 다이아</span><span class="spark" style="left:15%;top:25%"></span><span class="spark" style="left:85%;top:30%;animation-delay:.5s"></span><div class="name">본죽</div><div class="meta">한식 · 3층</div><div class="stat">★4.8 · 👍27</div></div></div>
+    <div class="card small r2 t-ruby"><span class="medal">🥈</span><div class="in"><span class="tier">❤️ 루비</span><span class="spark" style="left:20%;top:40%"></span><div class="name">김밥천국</div><div class="meta">분식</div><div class="stat">★4.2 · 👍12</div></div></div>
+    <div class="card small r3 t-unk"><span class="medal">🥉</span><div class="in"><span class="tier">❔ 미확인</span><div class="name">홍콩반점</div><div class="meta">중식</div><div class="stat">평가 부족</div></div></div>
+  </div>
+</div>

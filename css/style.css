@@ -95,7 +95,6 @@ h1 {
   gap: 10px;
   margin-bottom: 12px;
 }
-.filter-row + .stage { margin-top: 8px; }
 .filter-label {
   flex: 0 0 4.5em;
   padding-top: 7px;
@@ -125,39 +124,6 @@ h1 {
 }
 .chip:disabled { cursor: default; opacity: 0.6; }
 
-.stage {
-  position: relative;
-  overflow: hidden;
-  padding: 8px 0;
-  margin-bottom: 12px;
-}
-.reel {
-  min-height: 72px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 12px;
-  border: 3px solid var(--border);
-  border-radius: 16px;
-  background: var(--surface);
-  font-size: 1.75rem;
-  font-weight: 700;
-  text-align: center;
-  word-break: keep-all;
-  overflow-wrap: anywhere; /* 띄어쓰기 없는 긴 이름은 카드 안에서 줄바꿈 */
-}
-.reel.done {
-  border-color: var(--win);
-  box-shadow: 0 0 18px color-mix(in srgb, var(--win) 55%, transparent);
-}
-.reel-sub {
-  min-height: 1.4em;
-  margin-top: 6px;
-  text-align: center;
-  color: var(--muted);
-  font-size: 0.9rem;
-}
-
 .spin {
   width: 100%;
   padding: 14px;
@@ -171,41 +137,85 @@ h1 {
 }
 .spin:disabled { opacity: 0.5; cursor: default; }
 
+/* 같은 크기의 앞·뒷면을 겹쳐 돌리기 전후 무대 높이를 유지한다. */
+.stage { position: relative; margin: 18px 0; perspective: 1100px; }
+.card-flip { position: relative; height: 240px; transform-style: preserve-3d; transition: transform 0.56s ease; }
+.card-flip.revealed { transform: rotateY(180deg); }
+.card-back, .card-front { position: absolute; inset: 0; backface-visibility: hidden; }
+.card-front { transform: rotateY(180deg); }
+.card-back { border-radius: 16px; padding: 3px; background: linear-gradient(135deg,#c9b8a6,#8a735e); }
+.back-inner { position: relative; height: 100%; border-radius: 13px; background: var(--back-surface); color: var(--back-text); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 28px 16px; text-align: center; overflow: hidden; }
+.back-utensils { position: absolute; font-size: 7rem; opacity: .08; pointer-events: none; }
+.spin-name { position: relative; display: grid; place-items: center; width: 74px; height: 74px; border: 3px double #b99e86; border-radius: 50%; font-size: 2rem; font-weight: 800; overflow-wrap: anywhere; max-width: 100%; max-height: 140px; overflow: auto; }
+.spinning .spin-name { width: 100%; height: auto; min-height: 74px; border: none; border-radius: 0; font-size: 1.6rem; }
+.back-hint { position: relative; margin-top: 8px; opacity: .75; font-size: .8rem; }
+:root { --back-surface: #fffaf3; --back-text: #5b4636; }
+:root[data-theme='dark'] { --back-surface: #2a2420; --back-text: #e9d8c6; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) { --back-surface: #2a2420; --back-text: #e9d8c6; }
+}
+
+.gacha-card { position: relative; min-width: 0; padding: 3px; border-radius: 16px; isolation: isolate; text-align: center; background: var(--border); }
+.card-front { position: absolute; }
+.card-inner { position: relative; height: 100%; min-height: inherit; border-radius: 13px; overflow: hidden; display: flex; flex-direction: column; justify-content: center; padding: 40px 16px 18px; background: var(--surface); color: var(--text); }
+.big .card-inner { overflow-y: auto; justify-content: safe center; }
+.small .card-inner { padding: 36px 10px 14px; min-height: 185px; }
+.card-name { position: relative; font-weight: 800; font-size: 1.6rem; line-height: 1.25; overflow-wrap: anywhere; }
+.small .card-name { font-size: 1rem; }
+.card-meta { position: relative; margin-top: 5px; font-size: .8rem; opacity: .8; overflow-wrap: anywhere; }
+.small .card-meta { font-size: .72rem; }
+.card-stat { position: relative; font-size: .8rem; font-weight: 700; margin-top: 7px; }
+.small .card-stat { font-size: .72rem; }
+.gacha-card .map-link { position: relative; color: inherit; opacity: .8; }
+.card-tier { position: absolute; left: 9px; top: 8px; padding: 3px 8px; border-radius: 999px; font-size: .65rem; font-weight: 800; background: #666; color: #fff; z-index: 1; }
+.card-medal { position: absolute; right: -5px; top: -10px; font-size: 1.65rem; z-index: 3; filter: drop-shadow(0 2px 2px #0005); }
+.small .card-medal { font-size: 1.3rem; }
+.rank-1 { box-shadow: 0 0 22px 5px #ffc42880; }
+.rank-2 { box-shadow: 0 0 16px 3px #c8cdd7b0; }
+.rank-3 { box-shadow: 0 0 16px 3px #cd7f3277; }
+.tier-unknown { background: repeating-linear-gradient(45deg,#6b6460 0 6px,#857d78 6px 12px); }
+.tier-unknown .card-inner { background: #3a3532; color: #e9e2dc; }
+.card-watermark { position: absolute; inset: 0; display: grid; place-items: center; font-size: 8rem; font-weight: 900; opacity: .06; pointer-events: none; }
+.tier-stone { background: linear-gradient(135deg,#bdb6ae,#8f8780); }
+.tier-stone .card-inner { background: radial-gradient(circle at 30% 20%,var(--stone-top),var(--stone-base)); }
+.tier-stone .card-tier { background: #746c66; }
+.tier-emerald { background: linear-gradient(135deg,#7ef0b5,#0f9d58 45%,#0b6b3c); }
+.tier-emerald .card-inner { background: linear-gradient(160deg,var(--emerald-top),var(--emerald-base)); }
+.tier-emerald .card-tier { background: #087a42; }
+.card-crystal { position: absolute; width: 80px; height: 80px; right: -20px; bottom: -20px; background: conic-gradient(from 45deg,#b9f5d3,#3ccf86,#b9f5d3,#3ccf86,#b9f5d3); opacity: .3; transform: rotate(45deg); }
+.tier-ruby { background: linear-gradient(135deg,#ff8aa0,#d6123c 45%,#7a0820); }
+.tier-ruby .card-inner { background: radial-gradient(circle at 50% 0%,var(--ruby-top),var(--ruby-base)); outline: 1px solid #d6123c66; outline-offset: -6px; }
+.tier-ruby .card-tier { background: #c00b35; }
+.tier-diamond { background: conic-gradient(from var(--gem-angle),#9be7ff,#e7b6ff,#fff3a6,#a6ffd8,#9be7ff); animation: gem-turn 4s linear infinite; }
+.tier-diamond .card-inner { background: linear-gradient(160deg,var(--diamond-top),var(--diamond-base)); }
+.tier-diamond .card-tier { background: linear-gradient(90deg,#247a9e,#7950a3); }
+.card-spark { position: absolute; width: 5px; height: 5px; background: #fff; box-shadow: 0 0 7px 2px #ff6a88; animation: gem-twinkle 1.6s infinite; pointer-events: none; }
+.tier-diamond .card-spark { box-shadow: 0 0 8px 2px #9be7ff; }
+.spark-0 { left: 15%; top: 28%; }
+.spark-1 { left: 83%; top: 65%; animation-delay: .5s; }
+.spark-2 { left: 65%; top: 83%; animation-delay: .9s; }
+.card-sweep { position: absolute; inset: 0 auto 0 -60%; width: 40%; background: linear-gradient(100deg,transparent,#ffffff99,transparent); animation: gem-sweep 2.6s infinite; pointer-events: none; }
+.card-veil { position: absolute; inset: 3px; display: grid; place-items: center; border-radius: 13px; background: #3a3532; color: #ccc2b8; font-size: 6rem; font-weight: 900; pointer-events: none; }
+.unveiled .card-veil { animation: unveil .6s ease forwards; }
+.tier-diamond.unveiled::after { content: ''; position: absolute; inset: -8px; border-radius: 16px; background: #e9faff; pointer-events: none; animation: gem-flash .6s ease forwards; }
+@property --gem-angle { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+@keyframes gem-turn { to { --gem-angle: 360deg; } }
+@keyframes gem-sweep { to { left: 130%; } }
+@keyframes gem-twinkle { 0%,100% { opacity: .2; transform: scale(.6) rotate(45deg); } 50% { opacity: 1; transform: scale(1.2) rotate(45deg); } }
+@keyframes unveil { to { opacity: 0; transform: translateY(-25%) scale(1.1); visibility: hidden; } }
+@keyframes gem-flash { from { opacity: .85; } to { opacity: 0; visibility: hidden; } }
+:root { --stone-top: #fbf8f4; --stone-base: #ece6df; --emerald-top: #f2fff8; --emerald-base: #d7f5e5; --ruby-top: #fff3f5; --ruby-base: #ffd9e0; --diamond-top: #f6fdff; --diamond-base: #eee8ff; }
+:root[data-theme='dark'] { --stone-top: #3b3632; --stone-base: #2a2622; --emerald-top: #10301f; --emerald-base: #0b2116; --ruby-top: #3a1018; --ruby-base: #240a10; --diamond-top: #122635; --diamond-base: #1e1530; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) { --stone-top: #3b3632; --stone-base: #2a2622; --emerald-top: #10301f; --emerald-base: #0b2116; --ruby-top: #3a1018; --ruby-base: #240a10; --diamond-top: #122635; --diamond-base: #1e1530; }
+}
+
 .ranks {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   margin-top: 16px;
 }
-.rank {
-  flex: 1;
-  min-width: 0;
-  padding: 12px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--surface);
-  text-align: center;
-}
-.rating-badge {
-  display: table;
-  max-width: 100%;
-  margin: 0 0 6px auto;
-  padding: 3px 8px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-size: 0.75rem;
-  font-weight: 600;
-  overflow-wrap: anywhere;
-}
-.stage > .rating-badge {
-  position: absolute;
-  top: 18px;
-  right: 12px;
-  max-width: calc(100% - 24px);
-}
-.stage.has-rating .reel { padding-top: 44px; }
-
 .rating-dialog {
   width: min(440px, calc(100% - 32px));
   max-width: none;
@@ -249,9 +259,6 @@ h1 {
 .rating-status { margin: 12px 24px 0 0; line-height: 1.6; }
 .rating-status:empty { display: none; }
 
-.rank .label { color: var(--muted); font-size: 0.8rem; }
-.rank .name { font-weight: 700; font-size: 1.05rem; margin: 2px 0; word-break: keep-all; overflow-wrap: anywhere; }
-.rank .meta { color: var(--muted); font-size: 0.8rem; }
 
 .map-link {
   display: inline-block;
@@ -346,10 +353,6 @@ h1 {
   transform: none;
 }
 
-.reel.done { animation: pop 0.35s ease; }
-@keyframes pop {
-  50% { transform: scale(1.06); }
-}
 
 .confetti-layer {
   position: fixed;
@@ -375,7 +378,10 @@ h1 {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .card-flip { transition: none; }
+  .gacha-card, .card-spark, .card-sweep, .card-veil, .tier-diamond.unveiled::after { animation: none; }
+  .card-veil, .tier-diamond.unveiled::after { display: none; }
   .rank { transition: none; transform: none; }
-  .reel.done { animation: none; }
+
   .map.show { animation: none; }
 }
