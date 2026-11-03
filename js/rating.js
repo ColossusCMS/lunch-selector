@@ -1,6 +1,6 @@
 // 익명 평가의 집계와 마지막 추천 기록을 다룬다.
 
-/** @typedef {{ at: number, mode: string, names: string[] }} Pick */
+/** @typedef {{ at: number, mode: string, region: string, names: string[] }} Pick */
 /** @typedef {{ likes: number, avg: number | null, count: number }} RatingStat */
 
 export const PICK_KEY = 'lunch-selector:last-pick';
@@ -15,19 +15,31 @@ export const TIERS = [
 ];
 export const UNKNOWN_TIER = { id: 'unknown', label: '❔ 미확인' };
 
+export function starLabel(n) {
+  return Number.isInteger(n) && n >= 1 && n <= 5
+    ? ['별로예요', '아쉬워요', '괜찮아요', '맛있어요', '최고예요'][n - 1] : '';
+}
+
+export function ratingModeLabel(label) {
+  const match = label.trim().match(/^(\S+)\s+(.+)$/u);
+  return match && /\p{Extended_Pictographic}/u.test(match[1])
+    ? { icon: match[1], name: match[2].trim() }
+    : { icon: '🍽️', name: label.trim() };
+}
+
 export function cardTier(stat) {
   if (!stat || stat.count < TIER_MIN_COUNT || stat.avg === null) return UNKNOWN_TIER;
   return TIERS.find((tier) => stat.avg >= tier.min);
 }
 
-export function ratingKey(mode, name) {
-  return JSON.stringify([mode.trim(), name.trim()]);
+export function ratingKey(mode, region, name) {
+  return JSON.stringify([mode.trim(), region.trim(), name.trim()]);
 }
 
 /** @returns {Map<string, RatingStat>} */
 export function aggregateRatings(rows) {
   const header = (rows[0] ?? []).map((s) => s.replace(/^\uFEFF/, '').trim());
-  const col = Object.fromEntries(['모드', '가게명', '별점', '좋아요'].map((s) => [s, header.indexOf(s)]));
+  const col = Object.fromEntries(['모드', '지역', '가게명', '별점', '좋아요'].map((s) => [s, header.indexOf(s)]));
   const totals = new Map();
   if (col.모드 === -1 || col.가게명 === -1) return totals;
   for (const row of rows.slice(1)) {
@@ -35,7 +47,7 @@ export function aggregateRatings(rows) {
     const mode = cell('모드');
     const name = cell('가게명');
     if (!mode || !name) continue;
-    const key = ratingKey(mode, name);
+    const key = ratingKey(mode, cell('지역'), name);
     const total = totals.get(key) ?? { likes: 0, sum: 0, count: 0 };
     if (/^[1-5]$/.test(cell('별점'))) {
       total.sum += Number(cell('별점'));
@@ -75,9 +87,10 @@ export function parsePick(raw) {
     const p = JSON.parse(raw);
     if (!p || !Number.isFinite(p.at) || !Number.isFinite(new Date(p.at).getTime())
       || typeof p.mode !== 'string' || !p.mode.trim()
+      || typeof p.region !== 'string'
       || !Array.isArray(p.names) || p.names.length < 1 || p.names.length > 3
       || !p.names.every((n) => typeof n === 'string' && n.trim())) return null;
-    return { at: p.at, mode: p.mode, names: p.names };
+    return { at: p.at, mode: p.mode, region: p.region, names: p.names };
   } catch {
     return null;
   }
@@ -98,6 +111,7 @@ export function pickStatus(pick, now, modeIds) {
 export function buildRatingBody(entries, rating) {
   return new URLSearchParams({
     [entries.mode]: rating.mode,
+    [entries.region]: rating.region,
     [entries.name]: rating.name,
     [entries.stars]: rating.stars === null ? '' : String(rating.stars),
     [entries.like]: rating.like ? '1' : '',

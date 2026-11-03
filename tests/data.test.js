@@ -7,8 +7,9 @@ import { buildDataUrl, buildEditUrl, availableModes, initialMode, ratingEnabled 
 const ok = (body) => async () => ({ ok: true, text: async () => body });
 
 test('ratingEnabled: 모든 설정이 채워져야 켜진다', () => {
-  const rating = { formUrl: 'form', csvUrl: 'csv', entries: { mode: 'entry.1', name: 'entry.2', stars: 'entry.3', like: 'entry.4' } };
+  const rating = { formUrl: 'form', csvUrl: 'csv', entries: { region: 'entry.5', mode: 'entry.1', name: 'entry.2', stars: 'entry.3', like: 'entry.4' } };
   assert.equal(ratingEnabled(rating), true);
+  assert.equal(ratingEnabled({ ...rating, entries: { ...rating.entries, region: '' } }), false);
   assert.equal(ratingEnabled({ ...rating, entries: { ...rating.entries, like: '' } }), false);
   assert.equal(ratingEnabled({ ...rating, formUrl: ' ' }), false);
   const empty = { formUrl: '', csvUrl: '', entries: { mode: '', name: '', stars: '', like: '' } };
@@ -72,7 +73,7 @@ test('예시 CSV 파일이 6개 가게로 읽힘', async () => {
   const stores = await loadStores('x', ok(text));
   assert.equal(stores.length, 6);
   assert.deepEqual(stores[0].categories, ['분식', '한식']);
-  assert.equal(stores[5].enabled, false);
+  assert.equal(stores[5].region, '판교');
 });
 
 const LUNCH = { id: 'lunch', tab: '가게목록', gid: '0' };

@@ -1,15 +1,16 @@
 // 화면 초기화와 이벤트 처리.
 
-import { modes, initialMode, dataUrl, editUrl, KAKAO_MAP_KEY, RATING, ratingEnabled } from './config.js?v=202611031659';
-import { loadStores, fetchCsvRows, createRequestCounter } from './data.js?v=202611031659';
-import { listGroups, listCategories, filterCandidates, closedToday, pickTop } from './select.js?v=202611031659';
-import { spinReel, burstConfetti, reducedMotion } from './animation.js?v=202611031659';
-import { createMap, kakaoLink } from './map.js?v=202611031659';
-import { THEME_KEY, THEMES, parseTheme, applyTheme } from './theme.js?v=202611031659';
+import { modes, initialMode, dataUrl, editUrl, KAKAO_MAP_KEY, RATING, ratingEnabled } from './config.js?v=202611031923';
+import { loadStores, fetchCsvRows, createRequestCounter } from './data.js?v=202611031923';
+import { listRegions, listGroups, listCategories, filterCandidates, closedToday, pickTop } from './select.js?v=202611031923';
+import { spinReel, burstConfetti, reducedMotion } from './animation.js?v=202611031923';
+import { createMap, kakaoLink } from './map.js?v=202611031923';
+import { THEME_KEY, THEMES, parseTheme, applyTheme } from './theme.js?v=202611031923';
 import { PICK_KEY, ratingKey, aggregateRatings, cardTier, formatStatLine, parsePick, pickStatus,
-  buildRatingBody, applySendResults, dropIfSame } from './rating.js?v=202611031659';
+  buildRatingBody, applySendResults, dropIfSame, starLabel, ratingModeLabel } from './rating.js?v=202611031923';
 
-const GROUP_KEY = 'lunch-selector:group';
+const GROUP_KEY = 'lunch-selector:groups';
+const REGION_KEY = 'lunch-selector:region';
 const MODE_KEY = 'lunch-selector:mode';
 const ALL_SAVED = '*'; // 저장소에서 '전체'를 나타내는 값
 const ratingsOn = ratingEnabled(RATING);
@@ -19,6 +20,7 @@ const els = {
   theme: $('theme'),
   heading: $('heading'),
   modes: $('modes'),
+  regions: $('regions'),
   groups: $('groups'),
   categories: $('categories'),
   stage: $('stage'),
@@ -40,11 +42,13 @@ const els = {
 };
 
 const state = {
-  /** @type {import('./config.js?v=202611031659').Mode} */
+  /** @type {import('./config.js?v=202611031923').Mode} */
   mode: null,
-  /** @type {import('./stores.js?v=202611031659').Store[]} */
+  /** @type {import('./stores.js?v=202611031923').Store[]} */
   stores: [],
-  /** @type {string | null} null이면 전체 */
+  /** @type {string | null} null이면 지역 미선택, ''는 하위 호환 지역 */
+  region: null,
+  /** @type {string | null} null이면 전체 그룹 */
   group: null,
   categories: new Set(),
   spinning: false,
@@ -110,7 +114,7 @@ function fillCard(el, rank, store) {
   }
   const make = (cls, text) => Object.assign(document.createElement('div'), { className: cls, textContent: text });
   const size = rank === 1 ? 'big' : 'small';
-  const stat = state.ratings?.get(ratingKey(state.mode.id, store.name));
+  const stat = state.ratings?.get(ratingKey(state.mode.id, store.region, store.name));
   const tier = state.ratings === null ? null : cardTier(stat);
   el.className = `gacha-card ${size} rank-${rank} tier-${tier?.id ?? 'none'} ${rank === 1 ? 'card-front' : 'rank'}`;
   el.dataset.tier = tier?.id ?? 'none';
@@ -142,6 +146,11 @@ function fillCard(el, rank, store) {
     }
   }
   inner.append(make('card-name', store.name), make('card-meta', describe(store)));
+  if (store.crowd) {
+    const badge = make('card-crowd', `${{ 여유: '🟢', 보통: '🟡', 혼잡: '🔴' }[store.crowd]} ${store.crowd}`);
+    badge.setAttribute('aria-label', `혼잡도 ${store.crowd}`);
+    inner.append(badge);
+  }
   if (tier) {
     const line = formatStatLine(stat, tier.id, size);
     const text = make('card-stat', line.text);
@@ -177,7 +186,12 @@ function showRatingCard(pick) {
   const date = new Date(pick.at);
   const title = document.createElement('h2');
   title.id = 'rating-title';
-  title.textContent = `🍽️ ${date.getMonth() + 1}/${date.getDate()} ${mode.label.replace(/^\S+\s*/, '')} 추천, 다녀온 곳이 있으면 평가해 주세요`;
+  const modeLabel = ratingModeLabel(mode.label);
+  const titleLine = document.createElement('span');
+  titleLine.textContent = `${modeLabel.icon} ${date.getMonth() + 1}/${date.getDate()} ${modeLabel.name} 추천`;
+  const subtitleLine = document.createElement('span');
+  subtitleLine.textContent = '다녀온 곳이 있으면 평가해 주세요';
+  title.append(titleLine, document.createTextNode(' '), subtitleLine);
   const button = (text, className = '') => Object.assign(document.createElement('button'), {
     type: 'button', textContent: text, className,
   });
@@ -190,7 +204,7 @@ function showRatingCard(pick) {
   };
   dialog.addEventListener('close', () => clearTimeout(dismissTimer), { once: true });
   close.addEventListener('click', dismiss);
-  const later = button('다음에');
+  const later = button('다음에', 'rating-later');
   later.addEventListener('click', dismiss);
   const send = button('보내기', 'rating-send');
   const skip = button('안 갔어요');
@@ -208,31 +222,58 @@ function showRatingCard(pick) {
     options.className = 'rating-options';
     options.setAttribute('role', 'group');
     options.setAttribute('aria-label', `${choice.name} 평가`);
+    const label = document.createElement('div');
+    label.className = 'rating-star-label';
+    label.setAttribute('aria-live', 'polite');
     const stars = Array.from({ length: 5 }, (_, i) => {
       const star = button('☆', 'rating-star');
+      const glyph = document.createElement('span');
+      glyph.className = 'rating-star-glyph';
+      glyph.textContent = '☆';
+      star.replaceChildren(glyph);
       star.setAttribute('aria-label', `별 ${i + 1}개`);
       star.setAttribute('aria-pressed', 'false');
       star.addEventListener('click', () => {
         choice.stars = choice.stars === i + 1 ? null : i + 1;
         stars.forEach((el, j) => {
-          el.textContent = j < choice.stars ? '★' : '☆';
+          el.classList.remove('star-pop');
+          el.classList.toggle('filled', j < choice.stars);
+          el.firstElementChild.textContent = j < choice.stars ? '★' : '☆';
           el.setAttribute('aria-pressed', String(choice.stars === j + 1));
         });
+        label.textContent = starLabel(choice.stars);
+        if (choice.stars !== null) {
+          // 연속 클릭도 CSS 애니메이션을 처음부터 재생한다.
+          void options.offsetWidth;
+          stars.slice(0, choice.stars).forEach((el) => el.classList.add('star-pop'));
+        }
         syncSend();
       });
       return star;
     });
     const like = button('👍', 'rating-like');
+    const likeGlyph = document.createElement('span');
+    likeGlyph.className = 'rating-like-glyph';
+    likeGlyph.textContent = '👍';
+    like.replaceChildren(likeGlyph);
     like.setAttribute('aria-label', '좋아요');
     like.setAttribute('aria-pressed', 'false');
     like.addEventListener('click', () => {
       choice.like = !choice.like;
       like.setAttribute('aria-pressed', String(choice.like));
+      likeGlyph.classList.remove('like-pop');
+      if (choice.like) {
+        void likeGlyph.offsetWidth;
+        likeGlyph.classList.add('like-pop');
+      }
       syncSend();
     });
     controls.push(...stars, like);
-    options.append(...stars, like);
-    row.append(name, options);
+    const rowHeader = document.createElement('div');
+    rowHeader.className = 'rating-row-header';
+    rowHeader.append(name, like);
+    options.append(...stars);
+    row.append(rowHeader, options, label);
     return row;
   });
   skip.addEventListener('click', () => {
@@ -241,7 +282,7 @@ function showRatingCard(pick) {
   });
   const actions = document.createElement('div');
   actions.className = 'rating-actions';
-  actions.append(send, skip, later);
+  actions.append(later, skip, send);
   const status = document.createElement('p');
   status.className = 'rating-status';
   status.setAttribute('role', 'status');
@@ -256,7 +297,7 @@ function showRatingCard(pick) {
       try {
         await fetch(RATING.formUrl, {
           method: 'POST', mode: 'no-cors',
-          body: buildRatingBody(RATING.entries, { ...choice, mode: pick.mode }),
+          body: buildRatingBody(RATING.entries, { ...choice, mode: pick.mode, region: pick.region }),
         });
         sent.push(choice.name);
       } catch {
@@ -332,8 +373,46 @@ function makeChip(label, value, key) {
   return chip;
 }
 
+function readGroups() {
+  try {
+    const value = JSON.parse(storage.get(GROUP_KEY));
+    return value && !Array.isArray(value) && typeof value === 'object'
+      && Object.values(value).every((v) => typeof v === 'string') ? value : {};
+  } catch { return {}; }
+}
+
+function selectRegion(region) {
+  state.region = region;
+  state.categories.clear();
+  resetResult();
+  els.backHint.textContent = region === null ? '📍 지역을 먼저 골라 주세요' : '돌려서 오늘의 카드를 확인하세요';
+  for (const chip of els.regions.querySelectorAll('.chip')) {
+    chip.setAttribute('aria-pressed', String(chip.dataset.region === region));
+  }
+  const groups = listGroups(state.stores, region);
+  els.groups.parentElement.hidden = region === null || groups.length === 0;
+  els.categories.parentElement.hidden = region === null;
+  els.closed.hidden = true;
+  if (region !== null) {
+    const saved = readGroups();
+    const legacy = storage.get('lunch-selector:group');
+    if (legacy !== null) {
+      if (groups.includes(legacy)) {
+        saved[region] = legacy;
+        storage.set(GROUP_KEY, JSON.stringify(saved));
+      }
+      storage.remove('lunch-selector:group');
+    }
+    state.group = groups.includes(saved[region]) ? saved[region] : null;
+    renderGroups();
+    renderCategories();
+    renderClosed();
+  }
+  els.spin.disabled = region === null;
+}
+
 function renderGroups() {
-  const chips = [makeChip('전체', null, 'group'), ...listGroups(state.stores).map((g) => makeChip(g, g, 'group'))];
+  const chips = [makeChip('전체', null, 'group'), ...listGroups(state.stores, state.region).map((g) => makeChip(g, g, 'group'))];
   els.groups.replaceChildren(...chips);
   syncGroupChips();
 }
@@ -347,7 +426,7 @@ function syncGroupChips() {
 function renderCategories() {
   const chips = [
     makeChip('전체', null, 'category'),
-    ...listCategories(state.stores, state.group).map((c) => makeChip(c, c, 'category')),
+    ...listCategories(state.stores, state.region, state.group).map((c) => makeChip(c, c, 'category')),
   ];
   els.categories.replaceChildren(...chips);
   syncCategoryChips();
@@ -362,20 +441,21 @@ function syncCategoryChips() {
 }
 
 function renderClosed() {
-  const closed = closedToday(state.stores, state.group, today());
+  const closed = closedToday(state.stores, state.region, state.group, today());
   els.closed.hidden = closed.length === 0;
   els.closed.textContent = `오늘 휴무: ${closed.map((s) => s.name).join(', ')}`;
 }
 
 function setControlsDisabled(disabled) {
-  els.spin.disabled = disabled;
+  els.spin.disabled = disabled || state.region === null;
   for (const chip of document.querySelectorAll('.chip')) chip.disabled = disabled;
 }
 
 function selectGroup(group) {
   state.group = group;
   state.categories.clear();
-  storage.set(GROUP_KEY, group ?? ALL_SAVED);
+  const saved = readGroups();
+  storage.set(GROUP_KEY, JSON.stringify({ ...saved, [state.region]: group ?? ALL_SAVED }));
   syncGroupChips();
   renderCategories();
   renderClosed();
@@ -424,12 +504,12 @@ async function present(picks, candidates) {
   els.cardBack.setAttribute('aria-hidden', 'true');
   els.rank1.classList.add('unveiled');
   if (ratingsOn) {
-    savePick({ at: Date.now(), mode: state.mode.id, names: picks.map((s) => s.name) });
+    savePick({ at: Date.now(), mode: state.mode.id, region: state.region, names: picks.map((s) => s.name) });
   }
   // 화면 낭독기는 회전 중 이름이 아니라 최종 결과만 한 번 읽는다.
   els.announce.textContent = picks.map((s, i) => {
     const id = [els.rank1, els.rank2, els.rank3][i].dataset.tier;
-    const label = id === 'none' ? '' : `(${cardTier(state.ratings?.get(ratingKey(state.mode.id, s.name))).label.replace(/^\S+\s/, '')})`;
+    const label = id === 'none' ? '' : `(${cardTier(state.ratings?.get(ratingKey(state.mode.id, s.region, s.name))).label.replace(/^\S+\s/, '')})`;
     return `${i + 1}순위 ${s.name}${label}`;
   }).join(', ');
   if (!calm) burstConfetti();
@@ -439,10 +519,11 @@ async function present(picks, candidates) {
 }
 
 async function spin() {
-  if (state.spinning) return;
+  if (state.spinning || state.region === null) return;
   resetResult();
   renderClosed(); // 페이지를 연 채 날짜가 바뀌었을 수 있다
   const candidates = filterCandidates(state.stores, {
+    region: state.region,
     group: state.group,
     categories: [...state.categories],
     day: today(),
@@ -503,7 +584,9 @@ function selectMode(mode) {
   const edit = editUrl(mode);
   els.editLink.hidden = !edit;
   if (edit) els.editLink.href = edit;
+  state.region = null;
   resetResult();
+  for (const el of [els.regions, els.groups, els.categories]) el.parentElement.hidden = true;
   els.groups.replaceChildren();
   els.categories.replaceChildren();
   els.closed.hidden = true;
@@ -529,20 +612,27 @@ async function load() {
   if (!loads.isLatest(id)) return;
   state.stores = stores;
 
-  const groups = listGroups(state.stores);
-  if (groups.length === 0) {
+  const regions = listRegions(stores);
+  if (regions.length === 0) {
     setMessage('시트에 가게가 없어요');
     els.retry.hidden = false;
     return;
   }
-  storeCache.set(mode.id, stores); // 빈 시트는 다시 시도할 수 있게 기억하지 않는다
-  const saved = storage.get(GROUP_KEY);
-  const initial = saved === ALL_SAVED ? null : groups.includes(saved) ? saved : groups[0];
-  state.group = initial;
-  renderGroups();
-  selectGroup(initial);
+  storeCache.set(mode.id, stores);
+  const saved = storage.get(REGION_KEY);
+  state.region = regions.length === 1 ? regions[0] : regions.includes(saved) ? saved : null;
+  els.regions.parentElement.hidden = regions.length < 2;
+  els.regions.replaceChildren(...regions.map((r) => makeChip(r, r, 'region')));
+  selectRegion(state.region);
   setControlsDisabled(false);
 }
+
+els.regions.addEventListener('click', (event) => {
+  const chip = event.target.closest('.chip');
+  if (!chip || state.spinning) return;
+  storage.set(REGION_KEY, chip.dataset.region);
+  if (chip.dataset.region !== state.region) selectRegion(chip.dataset.region);
+});
 
 els.groups.addEventListener('click', (event) => {
   const chip = event.target.closest('.chip');

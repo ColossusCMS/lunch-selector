@@ -33,12 +33,12 @@ export const RATING = {
   // 평점 탭을 "웹에 게시"한 전체 CSV 주소.
   csvUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQWy__V0_6ECJT2UuhK7vNYLbu0R5bF5tsjLofOgSu0uWXXLya3qnUOexOowE7Cksc-IXcMpg7hhkU0/pub?gid=918939752&single=true&output=csv',
   // 폼의 미리 채워진 링크에서 찾은 질문별 entry.숫자 ID.
-  entries: { mode: 'entry.434634594', name: 'entry.1793193481', stars: 'entry.73675555', like: 'entry.2091000136' },
+  entries: { region: 'entry.984834608', mode: 'entry.434634594', name: 'entry.1793193481', stars: 'entry.73675555', like: 'entry.2091000136' },
 };
 
 export function ratingEnabled(rating) {
   return [rating?.formUrl, rating?.csvUrl,
-    ...['mode', 'name', 'stars', 'like'].map((key) => rating?.entries?.[key])]
+    ...['mode', 'region', 'name', 'stars', 'like'].map((key) => rating?.entries?.[key])]
     .every((value) => typeof value === 'string' && value.trim().length > 0);
 }
 

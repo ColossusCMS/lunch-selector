@@ -7,6 +7,10 @@
   --accent: #e8590c;
   --accent-soft: #fff0e6;
   --win: #2f9e44;
+  --star-empty: #70675f;
+  --star-gold: #875500;
+  --star-bg: #fff1bf;
+  --star-border: #b68117;
   color-scheme: light;
 }
 
@@ -21,6 +25,10 @@
     --accent: #ff8a3d;
     --accent-soft: #3a2a1f;
     --win: #51cf66;
+    --star-empty: #b6afaa;
+    --star-gold: #ffd366;
+    --star-bg: #493916;
+    --star-border: #b68b32;
     color-scheme: dark;
   }
 }
@@ -33,6 +41,10 @@
   --accent: #ff8a3d;
   --accent-soft: #3a2a1f;
   --win: #51cf66;
+  --star-empty: #b6afaa;
+  --star-gold: #ffd366;
+  --star-bg: #493916;
+  --star-border: #b68b32;
   color-scheme: dark;
 }
 
@@ -217,7 +229,7 @@ h1 {
   margin-top: 16px;
 }
 .rating-dialog {
-  width: min(440px, calc(100% - 32px));
+  width: min(400px, calc(100% - 48px));
   max-width: none;
   max-height: calc(100dvh - 32px);
   margin: auto;
@@ -235,6 +247,7 @@ h1 {
   line-height: 1.6;
   overflow-wrap: anywhere;
 }
+.rating-dialog h2 > span { display: block; }
 .rating-dialog button {
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -248,12 +261,22 @@ h1 {
 .rating-dialog button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .rating-dialog .rating-close { position: absolute; top: 8px; right: 8px; border: 0; }
 .rating-row { padding: 10px 0; border-top: 1px solid var(--border); }
-.rating-name { margin-bottom: 6px; font-weight: 600; overflow-wrap: anywhere; }
-.rating-options { display: flex; flex-wrap: wrap; gap: 4px; }
-.rating-dialog .rating-star { padding: 4px 6px; color: var(--accent); font-size: 1.35rem; }
-.rating-dialog .rating-like { margin-left: 6px; }
+.rating-row-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.rating-name { min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
+.rating-options { display: flex; flex-wrap: nowrap; align-items: center; justify-content: space-between; gap: 4px; }
+.rating-dialog .rating-star { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 44px; height: 44px; padding: 0; line-height: 1; color: var(--star-empty); font-size: 1.6rem; }
+.rating-star-glyph { transform: translateY(-2px); }
+.rating-dialog .rating-star.filled { color: var(--star-gold); background: var(--star-bg); border-color: var(--star-border); }
+.rating-star-label { min-height: 1.5em; margin-top: 4px; text-align: center; white-space: nowrap; line-height: 1.5; font-size: .8rem; color: var(--star-gold); }
+.rating-star.star-pop { animation: star-pop .2s ease-out; }
+@keyframes star-pop { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+.rating-dialog .rating-like { flex-shrink: 0; }
+.rating-like-glyph { display: inline-block; }
+.rating-like-glyph.like-pop { animation: like-pop .2s ease-out; }
+@keyframes like-pop { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
 .rating-dialog .rating-like[aria-pressed='true'] { background: var(--accent-soft); border-color: var(--accent); }
-.rating-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.rating-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+.rating-dialog .rating-later { margin-right: auto; border-color: transparent; background: transparent; color: var(--star-empty); }
 .rating-dialog .rating-send { background: var(--accent); border-color: var(--accent); color: #fff; }
 .rating-dialog .rating-done { display: block; width: 100%; margin-top: 16px; }
 .rating-status { margin: 12px 24px 0 0; line-height: 1.6; }
@@ -378,6 +401,8 @@ h1 {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .rating-star.star-pop { animation: none; }
+  .rating-like-glyph.like-pop { animation: none; }
   .card-flip { transition: none; }
   .gacha-card, .card-spark, .card-sweep, .card-veil, .tier-diamond.unveiled::after { animation: none; }
   .card-veil, .tier-diamond.unveiled::after { display: none; }
@@ -385,3 +410,6 @@ h1 {
 
   .map.show { animation: none; }
 }
+
+/* 카드 테마와 무관하게 혼잡도 배지의 대비를 유지한다. */
+.card-crowd { align-self: center; position: relative; margin-top: 7px; padding: 2px 8px; border-radius: 12px; background: #f4f4f4; color: #252525; font-size: .72rem; line-height: 1.5; }

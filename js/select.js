@@ -1,62 +1,17 @@
-// 그룹·업종·오늘 요일로 후보를 고르고 1·2·3순위를 뽑는다.
-
-/** @typedef {import('./stores.js?v=202611031659').Store} Store */
-
+// 지역·그룹·업종·오늘 요일로 후보를 고른다.
+/** @typedef {import('./stores.js?v=202611031923').Store} Store */
 const byKorean = (a, b) => a.localeCompare(b, 'ko');
-
-/**
- * group이 null이면 전체 그룹. 그룹이 빈 가게는 전체에도 넣지 않는다.
- * @param {Store} store
- * @param {string | null} group
- */
-const inGroup = (store, group) =>
-  group === null ? store.groups.length > 0 : store.groups.includes(group);
-
-/**
- * 사용 중인 가게가 있는 그룹만.
- * @param {Store[]} stores
- * @returns {string[]}
- */
-export function listGroups(stores) {
-  return [...new Set(stores.filter((s) => s.enabled).flatMap((s) => s.groups))].sort(byKorean);
+const inGroup = (store, group) => group === null || store.groups.includes(group);
+const members = (stores, region, group = null) => stores.filter((s) => s.region === region && inGroup(s, group));
+/** 이름 없는 하위 호환 지역('')도 하나의 지역으로 센다. */
+export const listRegions = (stores) => [...new Set(stores.map((s) => s.region))].sort(byKorean);
+export const listGroups = (stores, region) => [...new Set(members(stores, region).flatMap((s) => s.groups))].sort(byKorean);
+export const listCategories = (stores, region, group) => [...new Set(members(stores, region, group).flatMap((s) => s.categories))].sort(byKorean);
+export function filterCandidates(stores, { region, group, categories, day }) {
+  return members(stores, region, group).filter((s) => !s.closedDays.includes(day)
+    && (categories.length === 0 || s.categories.some((c) => categories.includes(c))));
 }
-
-/**
- * 사용 중인 가게의 업종만.
- * @param {Store[]} stores
- * @param {string | null} group null이면 전체
- * @returns {string[]}
- */
-export function listCategories(stores, group) {
-  const members = stores.filter((s) => s.enabled && inGroup(s, group));
-  return [...new Set(members.flatMap((s) => s.categories))].sort(byKorean);
-}
-
-/**
- * 업종은 하나라도 겹치면 통과(OR), 빈 배열이면 필터 없음.
- * @param {Store[]} stores
- * @param {{ group: string | null, categories: string[], day: number }} opts
- * @returns {Store[]}
- */
-export function filterCandidates(stores, { group, categories, day }) {
-  return stores.filter(
-    (s) =>
-      inGroup(s, group) &&
-      s.enabled &&
-      !s.closedDays.includes(day) &&
-      (categories.length === 0 || s.categories.some((c) => categories.includes(c))),
-  );
-}
-
-/**
- * @param {Store[]} stores
- * @param {string | null} group null이면 전체
- * @param {number} day
- * @returns {Store[]}
- */
-export function closedToday(stores, group, day) {
-  return stores.filter((s) => inGroup(s, group) && s.enabled && s.closedDays.includes(day));
-}
+export const closedToday = (stores, region, group, day) => members(stores, region, group).filter((s) => s.closedDays.includes(day));
 
 /**
  * Fisher–Yates 셔플 후 앞에서 count개. 입력 배열은 바꾸지 않는다.
