@@ -101,4 +101,6 @@ Node 22 이상. 외부 의존성은 없습니다.
 
 ## GitHub Pages 배포
 
+배포 전에 `npm run bump`를 실행하세요. 로컬 CSS·JavaScript 참조에 같은 시각 버전을 붙여 브라우저 캐시에서 새 파일과 옛 파일이 섞이는 것을 방지합니다. 생성된 `index.html`과 `js/` 변경도 함께 커밋·배포합니다.
+
 저장소 **Settings → Pages → Build and deployment**에서 Source를 **Deploy from a branch**, Branch를 `main` / `(root)`로 지정하면 1~2분 뒤 `https://<계정>.github.io/<저장소>/`에서 열립니다.

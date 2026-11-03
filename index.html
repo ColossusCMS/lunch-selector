@@ -12,7 +12,7 @@
       if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
     } catch { /* 저장소를 못 쓰면 시스템 설정을 따른다 */ }
   </script>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=202611031659">
 </head>
 <body>
   <main class="app">
@@ -58,6 +58,7 @@
 
     <p id="message" class="message">불러오는 중...</p>
     <button id="retry" class="retry" type="button" hidden>다시 시도</button>
+    <button id="startup-reload" class="retry" type="button" hidden>새로 불러오기</button>
 
     <footer class="footer">
       <p id="closed" class="closed" hidden></p>
@@ -65,6 +66,25 @@
     </footer>
   </main>
   <dialog id="rating-dialog" class="rating-dialog" aria-labelledby="rating-title"></dialog>
-  <script type="module" src="js/app.js"></script>
+  <script>
+    // 모듈 자체를 불러오지 못해도 오류 안내와 새로 불러오기는 동작한다.
+    (function () {
+      var reload = document.getElementById('startup-reload');
+      function failed() {
+        if (window.__lunchReady) return;
+        document.getElementById('message').textContent = '화면을 불러오지 못했어요';
+        reload.hidden = false;
+      }
+      window.__lunchStartFailed = failed;
+      window.addEventListener('error', failed);
+      setTimeout(failed, 8000);
+      reload.addEventListener('click', function () {
+        var url = new URL(location.href);
+        url.searchParams.set('r', String(Date.now()));
+        location.replace(url.href);
+      });
+    })();
+  </script>
+  <script type="module" src="js/app.js?v=202611031659" onerror="window.__lunchStartFailed()"></script>
 </body>
 </html>

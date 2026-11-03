@@ -1,13 +1,13 @@
 // 화면 초기화와 이벤트 처리.
 
-import { modes, initialMode, dataUrl, editUrl, KAKAO_MAP_KEY, RATING, ratingEnabled } from './config.js';
-import { loadStores, fetchCsvRows, createRequestCounter } from './data.js';
-import { listGroups, listCategories, filterCandidates, closedToday, pickTop } from './select.js';
-import { spinReel, burstConfetti, reducedMotion } from './animation.js';
-import { createMap, kakaoLink } from './map.js';
-import { THEME_KEY, THEMES, parseTheme, applyTheme } from './theme.js';
+import { modes, initialMode, dataUrl, editUrl, KAKAO_MAP_KEY, RATING, ratingEnabled } from './config.js?v=202611031659';
+import { loadStores, fetchCsvRows, createRequestCounter } from './data.js?v=202611031659';
+import { listGroups, listCategories, filterCandidates, closedToday, pickTop } from './select.js?v=202611031659';
+import { spinReel, burstConfetti, reducedMotion } from './animation.js?v=202611031659';
+import { createMap, kakaoLink } from './map.js?v=202611031659';
+import { THEME_KEY, THEMES, parseTheme, applyTheme } from './theme.js?v=202611031659';
 import { PICK_KEY, ratingKey, aggregateRatings, cardTier, formatStatLine, parsePick, pickStatus,
-  buildRatingBody, applySendResults, dropIfSame } from './rating.js';
+  buildRatingBody, applySendResults, dropIfSame } from './rating.js?v=202611031659';
 
 const GROUP_KEY = 'lunch-selector:group';
 const MODE_KEY = 'lunch-selector:mode';
@@ -40,9 +40,9 @@ const els = {
 };
 
 const state = {
-  /** @type {import('./config.js').Mode} */
+  /** @type {import('./config.js?v=202611031659').Mode} */
   mode: null,
-  /** @type {import('./stores.js').Store[]} */
+  /** @type {import('./stores.js?v=202611031659').Store[]} */
   stores: [],
   /** @type {string | null} null이면 전체 */
   group: null,
@@ -172,6 +172,7 @@ function savePick(pick) {
 /** 모달은 열릴 때 읽은 추천을 유지하고, 저장값을 고칠 때만 현재 기록과 비교한다. */
 function showRatingCard(pick) {
   const dialog = els.ratingDialog;
+  if (typeof dialog.showModal !== 'function') return;
   const mode = modes().find((m) => m.id === pick.mode);
   const date = new Date(pick.at);
   const title = document.createElement('h2');
@@ -577,7 +578,6 @@ els.retry.addEventListener('click', load);
 
 renderThemes();
 selectTheme(parseTheme(storage.get(THEME_KEY)));
-initRatings();
 
 const savedMode = storage.get(MODE_KEY);
 renderModes();
@@ -588,3 +588,10 @@ if (first === null) {
 } else {
   selectMode(first);
 }
+
+try {
+  initRatings();
+} catch (err) {
+  console.warn('평가 기능을 시작하지 못했어요', err);
+}
+window.__lunchReady = true;

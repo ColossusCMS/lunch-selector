@@ -1,6 +1,6 @@
 // 그룹·업종·오늘 요일로 후보를 고르고 1·2·3순위를 뽑는다.
 
-/** @typedef {import('./stores.js').Store} Store */
+/** @typedef {import('./stores.js?v=202611031659').Store} Store */
 
 const byKorean = (a, b) => a.localeCompare(b, 'ko');
 
