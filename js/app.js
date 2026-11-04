@@ -1,13 +1,13 @@
 // 화면 초기화와 이벤트 처리.
 
-import { modes, initialMode, dataUrl, editUrl, KAKAO_MAP_KEY, RATING, ratingEnabled } from './config.js?v=202611031923';
-import { loadStores, fetchCsvRows, createRequestCounter } from './data.js?v=202611031923';
-import { listRegions, listGroups, listCategories, filterCandidates, closedToday, pickTop } from './select.js?v=202611031923';
-import { spinReel, burstConfetti, reducedMotion } from './animation.js?v=202611031923';
-import { createMap, kakaoLink } from './map.js?v=202611031923';
-import { THEME_KEY, THEMES, parseTheme, applyTheme } from './theme.js?v=202611031923';
+import { APP_VERSION, modes, initialMode, dataUrl, editUrl, KAKAO_MAP_KEY, RATING, ratingEnabled } from './config.js?v=202611041049';
+import { loadStores, fetchCsvRows, createRequestCounter } from './data.js?v=202611041049';
+import { listRegions, listGroups, listCategories, filterCandidates, closedToday, pickTop } from './select.js?v=202611041049';
+import { spinReel, burstConfetti, reducedMotion } from './animation.js?v=202611041049';
+import { createMap, kakaoLink } from './map.js?v=202611041049';
+import { THEME_KEY, THEMES, parseTheme, applyTheme } from './theme.js?v=202611041049';
 import { PICK_KEY, ratingKey, aggregateRatings, cardTier, formatStatLine, parsePick, pickStatus,
-  buildRatingBody, applySendResults, dropIfSame, starLabel, ratingModeLabel } from './rating.js?v=202611031923';
+  buildRatingBody, applySendResults, dropIfSame, starLabel, ratingModeLabel } from './rating.js?v=202611041049';
 
 const GROUP_KEY = 'lunch-selector:groups';
 const REGION_KEY = 'lunch-selector:region';
@@ -18,7 +18,8 @@ const ratingsOn = ratingEnabled(RATING);
 const $ = (id) => document.getElementById(id);
 const els = {
   theme: $('theme'),
-  heading: $('heading'),
+  heading: $('heading-text'),
+  appVersion: $('app-version'),
   modes: $('modes'),
   regions: $('regions'),
   groups: $('groups'),
@@ -42,9 +43,9 @@ const els = {
 };
 
 const state = {
-  /** @type {import('./config.js?v=202611031923').Mode} */
+  /** @type {import('./config.js?v=202611041049').Mode} */
   mode: null,
-  /** @type {import('./stores.js?v=202611031923').Store[]} */
+  /** @type {import('./stores.js?v=202611041049').Store[]} */
   stores: [],
   /** @type {string | null} null이면 지역 미선택, ''는 하위 호환 지역 */
   region: null,
@@ -122,27 +123,30 @@ function fillCard(el, rank, store) {
   const medal = make('card-medal', ['🥇', '🥈', '🥉'][rank - 1]);
   medal.setAttribute('aria-hidden', 'true');
   const inner = make('card-inner', '');
+  const deco = make('card-deco', '');
+  deco.setAttribute('aria-hidden', 'true');
+  inner.append(deco);
   if (tier) inner.append(make('card-tier', tier.label));
   if (tier?.id === 'unknown') {
     const watermark = make('card-watermark', '?');
     watermark.setAttribute('aria-hidden', 'true');
-    inner.append(watermark);
+    deco.append(watermark);
   }
   if (tier?.id === 'emerald') {
     const gem = make('card-crystal', '');
     gem.setAttribute('aria-hidden', 'true');
-    inner.append(gem);
+    deco.append(gem);
   }
   if (tier?.id === 'ruby' || tier?.id === 'diamond') {
     for (let i = 0; i < (tier.id === 'diamond' ? 3 : 2); i++) {
       const spark = make(`card-spark spark-${i}`, '');
       spark.setAttribute('aria-hidden', 'true');
-      inner.append(spark);
+      deco.append(spark);
     }
     if (tier.id === 'diamond') {
       const sweep = make('card-sweep', '');
       sweep.setAttribute('aria-hidden', 'true');
-      inner.append(sweep);
+      deco.append(sweep);
     }
   }
   inner.append(make('card-name', store.name), make('card-meta', describe(store)));
@@ -208,10 +212,10 @@ function showRatingCard(pick) {
   later.addEventListener('click', dismiss);
   const send = button('보내기', 'rating-send');
   const skip = button('안 갔어요');
-  const choices = pick.names.map((name) => ({ name, stars: null, like: false }));
+  const choices = pick.names.map((name) => ({ name, stars: null }));
   const controls = [];
   let sending = false;
-  const syncSend = () => { send.disabled = sending || !choices.some((c) => c.stars !== null || c.like); };
+  const syncSend = () => { send.disabled = sending || !choices.some((c) => c.stars !== null); };
   const rows = choices.map((choice) => {
     const row = document.createElement('div');
     row.className = 'rating-row';
@@ -251,29 +255,12 @@ function showRatingCard(pick) {
       });
       return star;
     });
-    const like = button('👍', 'rating-like');
-    const likeGlyph = document.createElement('span');
-    likeGlyph.className = 'rating-like-glyph';
-    likeGlyph.textContent = '👍';
-    like.replaceChildren(likeGlyph);
-    like.setAttribute('aria-label', '좋아요');
-    like.setAttribute('aria-pressed', 'false');
-    like.addEventListener('click', () => {
-      choice.like = !choice.like;
-      like.setAttribute('aria-pressed', String(choice.like));
-      likeGlyph.classList.remove('like-pop');
-      if (choice.like) {
-        void likeGlyph.offsetWidth;
-        likeGlyph.classList.add('like-pop');
-      }
-      syncSend();
-    });
-    controls.push(...stars, like);
-    const rowHeader = document.createElement('div');
-    rowHeader.className = 'rating-row-header';
-    rowHeader.append(name, like);
+    controls.push(...stars);
+    const rating = document.createElement('div');
+    rating.className = 'rating-control';
     options.append(...stars);
-    row.append(rowHeader, options, label);
+    rating.append(options, label);
+    row.append(name, rating);
     return row;
   });
   skip.addEventListener('click', () => {
@@ -293,7 +280,7 @@ function showRatingCard(pick) {
     for (const el of [...controls, skip]) el.disabled = true;
     const sent = [];
     const failed = [];
-    for (const choice of choices.filter((c) => c.stars !== null || c.like)) {
+    for (const choice of choices.filter((c) => c.stars !== null)) {
       try {
         await fetch(RATING.formUrl, {
           method: 'POST', mode: 'no-cors',
@@ -665,6 +652,9 @@ els.theme.addEventListener('click', (event) => {
 
 els.spin.addEventListener('click', spin);
 els.retry.addEventListener('click', load);
+
+els.appVersion.textContent = APP_VERSION;
+els.appVersion.hidden = !APP_VERSION.trim();
 
 renderThemes();
 selectTheme(parseTheme(storage.get(THEME_KEY)));

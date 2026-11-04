@@ -7,12 +7,12 @@ import { buildDataUrl, buildEditUrl, availableModes, initialMode, ratingEnabled 
 const ok = (body) => async () => ({ ok: true, text: async () => body });
 
 test('ratingEnabled: 모든 설정이 채워져야 켜진다', () => {
-  const rating = { formUrl: 'form', csvUrl: 'csv', entries: { region: 'entry.5', mode: 'entry.1', name: 'entry.2', stars: 'entry.3', like: 'entry.4' } };
+  const rating = { formUrl: 'form', csvUrl: 'csv', entries: { region: 'entry.5', mode: 'entry.1', name: 'entry.2', stars: 'entry.3' } };
   assert.equal(ratingEnabled(rating), true);
   assert.equal(ratingEnabled({ ...rating, entries: { ...rating.entries, region: '' } }), false);
-  assert.equal(ratingEnabled({ ...rating, entries: { ...rating.entries, like: '' } }), false);
+  assert.equal(ratingEnabled({ ...rating, entries: { ...rating.entries, stars: '' } }), false);
   assert.equal(ratingEnabled({ ...rating, formUrl: ' ' }), false);
-  const empty = { formUrl: '', csvUrl: '', entries: { mode: '', name: '', stars: '', like: '' } };
+  const empty = { formUrl: '', csvUrl: '', entries: { mode: '', name: '', stars: '' } };
   assert.equal(ratingEnabled(empty), false);
 });
 

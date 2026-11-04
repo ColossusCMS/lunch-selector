@@ -95,6 +95,7 @@ body {
 .theme-switch button[aria-pressed='true'] { background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
 .chip.mode { padding: 6px 18px; font-size: 0.95rem; }
 
+.app-version { font-size: .55em; font-weight: 400; color: var(--star-empty); vertical-align: baseline; }
 h1 {
   font-size: 1.5rem;
   text-align: center;
@@ -159,7 +160,7 @@ h1 {
 .back-inner { position: relative; height: 100%; border-radius: 13px; background: var(--back-surface); color: var(--back-text); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 28px 16px; text-align: center; overflow: hidden; }
 .back-utensils { position: absolute; font-size: 7rem; opacity: .08; pointer-events: none; }
 .spin-name { position: relative; display: grid; place-items: center; width: 74px; height: 74px; border: 3px double #b99e86; border-radius: 50%; font-size: 2rem; font-weight: 800; overflow-wrap: anywhere; max-width: 100%; max-height: 140px; overflow: auto; }
-.spinning .spin-name { width: 100%; height: auto; min-height: 74px; border: none; border-radius: 0; font-size: 1.6rem; }
+.spinning .spin-name { width: 100%; height: auto; min-height: 74px; border: none; border-radius: 0; font-size: 1.25rem; }
 .back-hint { position: relative; margin-top: 8px; opacity: .75; font-size: .8rem; }
 :root { --back-surface: #fffaf3; --back-text: #5b4636; }
 :root[data-theme='dark'] { --back-surface: #2a2420; --back-text: #e9d8c6; }
@@ -171,8 +172,9 @@ h1 {
 .card-front { position: absolute; }
 .card-inner { position: relative; height: 100%; min-height: inherit; border-radius: 13px; overflow: hidden; display: flex; flex-direction: column; justify-content: center; padding: 40px 16px 18px; background: var(--surface); color: var(--text); }
 .big .card-inner { overflow-y: auto; justify-content: safe center; }
+.card-deco { position: absolute; inset: 0; overflow: hidden; pointer-events: none; border-radius: inherit; isolation: isolate; }
 .small .card-inner { padding: 36px 10px 14px; min-height: 185px; }
-.card-name { position: relative; font-weight: 800; font-size: 1.6rem; line-height: 1.25; overflow-wrap: anywhere; }
+.card-name { position: relative; font-weight: 800; font-size: 1.25rem; line-height: 1.25; overflow-wrap: anywhere; }
 .small .card-name { font-size: 1rem; }
 .card-meta { position: relative; margin-top: 5px; font-size: .8rem; opacity: .8; overflow-wrap: anywhere; }
 .small .card-meta { font-size: .72rem; }
@@ -229,7 +231,7 @@ h1 {
   margin-top: 16px;
 }
 .rating-dialog {
-  width: min(400px, calc(100% - 48px));
+  width: min(440px, calc(100% - 32px));
   max-width: none;
   max-height: calc(100dvh - 32px);
   margin: auto;
@@ -260,21 +262,17 @@ h1 {
 .rating-dialog button:disabled { opacity: 0.5; cursor: default; }
 .rating-dialog button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .rating-dialog .rating-close { position: absolute; top: 8px; right: 8px; border: 0; }
-.rating-row { padding: 10px 0; border-top: 1px solid var(--border); }
-.rating-row-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
-.rating-name { min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
-.rating-options { display: flex; flex-wrap: nowrap; align-items: center; justify-content: space-between; gap: 4px; }
-.rating-dialog .rating-star { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 44px; height: 44px; padding: 0; line-height: 1; color: var(--star-empty); font-size: 1.6rem; }
+.rating-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--border); }
+/* 문구 줄 높이와 간격만큼 아래 여백을 두어 이름 중심을 별 버튼 중심에 맞춘다. */
+.rating-name { flex: 1; min-width: 0; margin-bottom: calc(1.2rem + 4px); font-weight: 600; overflow-wrap: anywhere; }
+.rating-control { flex: 0 0 auto; }
+.rating-options { display: flex; flex-wrap: nowrap; align-items: center; gap: 3px; }
+.rating-dialog .rating-star { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 34px; height: 34px; padding: 0; line-height: 1; color: var(--star-empty); font-size: 1.25rem; }
 .rating-star-glyph { transform: translateY(-2px); }
 .rating-dialog .rating-star.filled { color: var(--star-gold); background: var(--star-bg); border-color: var(--star-border); }
 .rating-star-label { min-height: 1.5em; margin-top: 4px; text-align: center; white-space: nowrap; line-height: 1.5; font-size: .8rem; color: var(--star-gold); }
 .rating-star.star-pop { animation: star-pop .2s ease-out; }
 @keyframes star-pop { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
-.rating-dialog .rating-like { flex-shrink: 0; }
-.rating-like-glyph { display: inline-block; }
-.rating-like-glyph.like-pop { animation: like-pop .2s ease-out; }
-@keyframes like-pop { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
-.rating-dialog .rating-like[aria-pressed='true'] { background: var(--accent-soft); border-color: var(--accent); }
 .rating-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-top: 12px; }
 .rating-dialog .rating-later { margin-right: auto; border-color: transparent; background: transparent; color: var(--star-empty); }
 .rating-dialog .rating-send { background: var(--accent); border-color: var(--accent); color: #fff; }
@@ -402,7 +400,6 @@ h1 {
 
 @media (prefers-reduced-motion: reduce) {
   .rating-star.star-pop { animation: none; }
-  .rating-like-glyph.like-pop { animation: none; }
   .card-flip { transition: none; }
   .gacha-card, .card-spark, .card-sweep, .card-veil, .tier-diamond.unveiled::after { animation: none; }
   .card-veil, .tier-diamond.unveiled::after { display: none; }

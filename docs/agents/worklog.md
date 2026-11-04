@@ -23,3 +23,9 @@
 - 2026-11-03 19:22 [codex] 사이클 009 구현 2차 추가 반영: 별44px·하단 다음에/안 갔어요/보내기 오른쪽 정렬·다음에 텍스트 버튼 — npm test 83 pass, Chrome 픽셀 여백1px·동작 회귀 PASS, v2- 캡처4개 갱신
 - 2026-11-03 19:24 [codex] 사이클 009 구현 3차: 다음에만 왼쪽 끝 정렬 (css/style.css 한 항목 외 버전/기록) — npm test 83 pass, Chrome 360/400px 라이트/다크 좌표·동작 회귀 PASS, v3- 캡처4개 저장
 - 2026-11-03 19:25 [pm] 사이클 009 반영 확인(디자인 보류): 평가 줄 별 세로 가운데·좋아요 효과·새 배치(👍 가게명 줄, 별 양끝, 문구 가운데)·모달 폭 축소·하단 버튼(다음에 왼쪽) (css/style.css, js/app.js, screenshots/009) — npm test 83 pass, 별·좋아요 배치는 사용자 재검토 중
+- 2026-11-04 10:25 [codex] 사이클 010 구현 1차: 좋아요 UI/전송/집계 제거·이름 왼쪽/별 오른쪽 배치 (js/app.js·rating.js·config.js, css, tests, SETUP, README 외 버전/기록) — npm test 83 pass, Chrome 360/400px·픽셀차이≤1px·가짜4필드 전송 PASS, screenshots/010 5개 저장
+- 2026-11-04 10:35 [pm] 사이클 010 완료: 좋아요 제거(화면·전송·집계, 폼 질문은 유지) + 평가 줄 '이름 왼쪽·별 오른쪽' 배치 (js/app.js·rating.js·config.js, css, tests 2개, SETUP, README, screenshots/010) — DoD 7/7, npm test 83 pass, 사용자 승인
+- 2026-11-04 10:37 [codex] 사이클 011 구현 1차: 카드 장식 전용 층으로 에메랄드 빈 스크롤 제거 (js/app.js fillCard, css/style.css 외 버전/기록) — npm test 83 pass, Chrome 5등급×360/400×3순위 스크롤 없음·긴 내용 스크롤·장식 모션 PASS, screenshots/011 9개
+- 2026-11-04 10:45 [pm] 사이클 011 완료: 에메랄드 1순위 카드 빈 스크롤 수정 — 장식을 넘침 잘라내는 .card-deco 층으로 이동 (js/app.js, css/style.css, screenshots/011) — DoD 6/6, npm test 83 pass
+- 2026-11-04 10:50 [codex] 사이클 012 구현 1차: 제목 옆 APP_VERSION v2.1 표시 (js/config.js·app.js, index.html, css, README, SETUP 외 버전/기록) — npm test 83 pass, Chrome 모드 전환/빈 버전/360·400 라이트·다크 PASS, screenshots/012 8개
+- 2026-11-04 10:55 [pm] 사이클 012 완료: 제목 옆 앱 버전 표시(APP_VERSION v2.1) (js/config.js·app.js, index.html, css, README, SETUP, screenshots/012) — DoD 4/4, npm test 83 pass. 010~012 커밋 + 로컬 태그 v2.1(사용자 요청)

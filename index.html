@@ -12,7 +12,7 @@
       if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
     } catch { /* 저장소를 못 쓰면 시스템 설정을 따른다 */ }
   </script>
-  <link rel="stylesheet" href="css/style.css?v=202611031923">
+  <link rel="stylesheet" href="css/style.css?v=202611041049">
 </head>
 <body>
   <main class="app">
@@ -20,7 +20,7 @@
       <div id="modes" class="modes" role="group" aria-label="고를 것" hidden></div>
       <div id="theme" class="theme-switch" role="group" aria-label="화면 테마"></div>
     </div>
-    <h1 id="heading">🍱 오늘 점심 뭐 먹지?</h1>
+    <h1 id="heading"><span id="heading-text">🍱 오늘 점심 뭐 먹지?</span> <span id="app-version" class="app-version">v2.1</span></h1>
 
     <div class="filter-row" hidden>
       <span class="filter-label" id="regions-label">지역</span>
@@ -90,6 +90,6 @@
       });
     })();
   </script>
-  <script type="module" src="js/app.js?v=202611031923" onerror="window.__lunchStartFailed()"></script>
+  <script type="module" src="js/app.js?v=202611041049" onerror="window.__lunchStartFailed()"></script>
 </body>
 </html>

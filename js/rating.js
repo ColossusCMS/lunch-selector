@@ -1,7 +1,7 @@
 // 익명 평가의 집계와 마지막 추천 기록을 다룬다.
 
 /** @typedef {{ at: number, mode: string, region: string, names: string[] }} Pick */
-/** @typedef {{ likes: number, avg: number | null, count: number }} RatingStat */
+/** @typedef {{ avg: number | null, count: number }} RatingStat */
 
 export const PICK_KEY = 'lunch-selector:last-pick';
 export const MIN_WAIT_MS = 30 * 60 * 1000;
@@ -39,7 +39,7 @@ export function ratingKey(mode, region, name) {
 /** @returns {Map<string, RatingStat>} */
 export function aggregateRatings(rows) {
   const header = (rows[0] ?? []).map((s) => s.replace(/^\uFEFF/, '').trim());
-  const col = Object.fromEntries(['모드', '지역', '가게명', '별점', '좋아요'].map((s) => [s, header.indexOf(s)]));
+  const col = Object.fromEntries(['모드', '지역', '가게명', '별점'].map((s) => [s, header.indexOf(s)]));
   const totals = new Map();
   if (col.모드 === -1 || col.가게명 === -1) return totals;
   for (const row of rows.slice(1)) {
@@ -48,16 +48,14 @@ export function aggregateRatings(rows) {
     const name = cell('가게명');
     if (!mode || !name) continue;
     const key = ratingKey(mode, cell('지역'), name);
-    const total = totals.get(key) ?? { likes: 0, sum: 0, count: 0 };
+    const total = totals.get(key) ?? { sum: 0, count: 0 };
     if (/^[1-5]$/.test(cell('별점'))) {
       total.sum += Number(cell('별점'));
       total.count += 1;
     }
-    if (cell('좋아요') === '1') total.likes += 1;
     totals.set(key, total);
   }
   return new Map([...totals].map(([key, t]) => [key, {
-    likes: t.likes,
     count: t.count,
     avg: t.count ? Math.round(t.sum / t.count * 10) / 10 : null,
   }]));
@@ -65,20 +63,11 @@ export function aggregateRatings(rows) {
 
 export function formatStatLine(stat, tierId, size) {
   if (tierId === 'unknown') {
-    if (stat?.likes > 0) return { text: `👍${stat.likes} · 평가 부족`, label: `좋아요 ${stat.likes}개, 평가 부족` };
     return { text: size === 'small' ? '평가 부족' : '아직 평가가 부족해요', label: '아직 평가가 부족해요' };
   }
-  const text = [];
-  const label = [];
-  if (stat?.avg != null) {
-    text.push(`★${stat.avg.toFixed(1)}`);
-    label.push(`평균 별점 ${stat.avg.toFixed(1)}점`);
-  }
-  if (stat?.likes > 0) {
-    text.push(`👍${stat.likes}`);
-    label.push(`좋아요 ${stat.likes}개`);
-  }
-  return { text: text.join(' · '), label: label.join(', ') };
+  return stat?.avg != null
+    ? { text: `★${stat.avg.toFixed(1)}`, label: `평균 별점 ${stat.avg.toFixed(1)}점` }
+    : { text: '', label: '' };
 }
 
 /** @returns {Pick | null} */
@@ -114,7 +103,6 @@ export function buildRatingBody(entries, rating) {
     [entries.region]: rating.region,
     [entries.name]: rating.name,
     [entries.stars]: rating.stars === null ? '' : String(rating.stars),
-    [entries.like]: rating.like ? '1' : '',
   });
 }
 
