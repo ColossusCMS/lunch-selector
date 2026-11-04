@@ -1,13 +1,13 @@
 // 화면 초기화와 이벤트 처리.
 
-import { APP_VERSION, ABOUT_URL, modes, initialMode, dataUrl, editUrl, KAKAO_MAP_KEY, RATING, ratingEnabled } from './config.js?v=202611041113';
-import { loadStores, fetchCsvRows, createRequestCounter } from './data.js?v=202611041113';
-import { listRegions, listGroups, listCategories, filterCandidates, closedToday, pickTop } from './select.js?v=202611041113';
-import { spinReel, burstConfetti, reducedMotion } from './animation.js?v=202611041113';
-import { createMap, kakaoLink } from './map.js?v=202611041113';
-import { THEME_KEY, THEMES, parseTheme, applyTheme } from './theme.js?v=202611041113';
+import { APP_VERSION, ABOUT_URL, modes, initialMode, dataUrl, editUrl, KAKAO_MAP_KEY, RATING, ratingEnabled } from './config.js?v=202611041325';
+import { loadStores, fetchCsvRows, createRequestCounter } from './data.js?v=202611041325';
+import { listRegions, listGroups, listCategories, filterCandidates, closedToday, pickTop } from './select.js?v=202611041325';
+import { spinReel, burstConfetti, reducedMotion } from './animation.js?v=202611041325';
+import { createMap, kakaoLink } from './map.js?v=202611041325';
+import { THEME_KEY, THEMES, parseTheme, applyTheme } from './theme.js?v=202611041325';
 import { PICK_KEY, ratingKey, aggregateRatings, cardTier, formatStatLine, parsePick, pickStatus,
-  buildRatingBody, applySendResults, dropIfSame, starLabel, ratingModeLabel } from './rating.js?v=202611041113';
+  buildRatingBody, applySendResults, dropIfSame, starLabel, ratingModeLabel } from './rating.js?v=202611041325';
 
 const GROUP_KEY = 'lunch-selector:groups';
 const REGION_KEY = 'lunch-selector:region';
@@ -44,9 +44,9 @@ const els = {
 };
 
 const state = {
-  /** @type {import('./config.js?v=202611041113').Mode} */
+  /** @type {import('./config.js?v=202611041325').Mode} */
   mode: null,
-  /** @type {import('./stores.js?v=202611041113').Store[]} */
+  /** @type {import('./stores.js?v=202611041325').Store[]} */
   stores: [],
   /** @type {string | null} null이면 지역 미선택, ''는 하위 호환 지역 */
   region: null,

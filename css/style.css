@@ -250,6 +250,7 @@ h1 {
   overflow-wrap: anywhere;
 }
 .rating-dialog h2 > span { display: block; }
+.rating-dialog h2 > span + span { font-size: .82em; font-weight: 400; color: var(--muted); margin-top: 2px; }
 .rating-dialog button {
   border: 1px solid var(--border);
   border-radius: 8px;

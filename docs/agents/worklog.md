@@ -35,3 +35,5 @@
 - 2026-11-04 11:12 [codex] 사이클 014 구현 1차: 푸터 GitHub 소개 링크·ABOUT_URL 빈 값 숨김 (index.html, js/config.js·app.js, css 외 버전/기록) — npm test 83 pass, Chrome 360/400 라이트/다크·단독 링크·모드/오류/빈 시트 PASS, screenshots/014 4개
 - 2026-11-04 11:14 [codex] 사이클 014 구현 2차: 두 푸터 링크 터치높이40px·박스간격16px (css/style.css 외 버전/기록) — npm test 83 pass, Chrome 360/400 라이트/다크 좌표·단독 링크·오류 상태 PASS, v2- 캡처4개
 - 2026-11-04 11:40 [pm] 사이클 014 완료: 화면 하단 GitHub 소개 링크(ABOUT_URL), 편집 링크와 터치 영역 40px·간격 16px (index.html, js/config.js·app.js, css, screenshots/014) — DoD 4/4, 2차에서 간격 보완, npm test 83 pass
+- 2026-11-04 13:25 [codex] 사이클 015 구현 1차: 평가 제목 둘째 줄 .82em·보조색·일반 굵기 (css/style.css 한 규칙 외 버전/기록) — npm test 83 pass, Chrome 점심/카페×360/400×라이트/다크 computed style·한 줄 PASS, impl-8개 저장·PM 원본4개 해시 보존
+- 2026-11-04 13:26 [pm] 사이클 015 완료: 평가 창 제목 2번째 줄 작고 연하게(.82em·보통 굵기·--muted) (css/style.css 한 규칙, screenshots/015) — DoD 3/3, 사용자가 샘플 보고 채택, npm test 83 pass
