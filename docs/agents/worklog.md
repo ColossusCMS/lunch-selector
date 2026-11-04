@@ -29,3 +29,5 @@
 - 2026-11-04 10:45 [pm] 사이클 011 완료: 에메랄드 1순위 카드 빈 스크롤 수정 — 장식을 넘침 잘라내는 .card-deco 층으로 이동 (js/app.js, css/style.css, screenshots/011) — DoD 6/6, npm test 83 pass
 - 2026-11-04 10:50 [codex] 사이클 012 구현 1차: 제목 옆 APP_VERSION v2.1 표시 (js/config.js·app.js, index.html, css, README, SETUP 외 버전/기록) — npm test 83 pass, Chrome 모드 전환/빈 버전/360·400 라이트·다크 PASS, screenshots/012 8개
 - 2026-11-04 10:55 [pm] 사이클 012 완료: 제목 옆 앱 버전 표시(APP_VERSION v2.1) (js/config.js·app.js, index.html, css, README, SETUP, screenshots/012) — DoD 4/4, npm test 83 pass. 010~012 커밋 + 로컬 태그 v2.1(사용자 요청)
+- 2026-11-04 11:02 [codex] 사이클 013 구현 1차: README v2.1 배지·지역 다이어그램·결정 배경3개·실제 시트 이미지/GIF 재촬영 (README.md, docs/images 6개) — npm test 83 pass, 실제 localhost:5173 지도·PNG/GIF 확인, GIF 1,797,701→1,865,459bytes, 소스/태그 변경 없음
+- 2026-11-04 11:20 [pm] 사이클 013 완료: README v2.1 정리(실데이터 스크린샷·데모 GIF 재촬영, 평가 창 이미지, 지역·혼잡도·좋아요 제거 고민 3개, 버전 배지) (README.md, docs/images) — DoD 4/4, npm test 83 pass

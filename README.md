@@ -14,6 +14,7 @@
 ![No Build](https://img.shields.io/badge/Build-없음-2f9e44)
 ![Dependencies](https://img.shields.io/badge/dependencies-0-2f9e44)
 ![Tests](https://img.shields.io/badge/tests-83_passing-2f9e44)
+![Version](https://img.shields.io/badge/version-v2.1-e8590c)
 
 <img src="docs/images/demo.gif" alt="돌리기 버튼을 누르면 가게 이름이 빠르게 돌다가 멈추고, 폭죽과 함께 1순위가 정해진 뒤 2·3순위 카드와 지도가 나타나는 모습" width="320">
 
@@ -63,6 +64,10 @@
   </tr>
 </table>
 
+다녀온 가게는 이름 옆 별점으로 평가해요.
+
+<img src="docs/images/rating.png" alt="가게명 왼쪽·별점 오른쪽 배치의 평가 창에서 금복돈육식당에 4점을 선택한 모습" width="320">
+
 ## ⚙️ 어떻게 동작하나요
 
 서버가 하나도 없어요. 정적 파일은 GitHub Pages가, 데이터는 구글 시트가, 지도는 카카오가 맡고 나머지는 전부 브라우저에서 일어나요.
@@ -80,7 +85,7 @@ flowchart LR
     subgraph B["브라우저 (GitHub Pages)"]
         direction TB
         P["CSV 파싱<br/>csv.js"] --> N["가게 정규화<br/>stores.js"]
-        N --> F["그룹·업종·휴무 필터<br/>select.js"]
+        N --> F["지역·그룹·업종·휴무 필터<br/>select.js"]
         F --> R["1·2·3순위 추첨<br/>Fisher–Yates"]
         P --> G["평점 집계 · 카드 등급<br/>rating.js"]
         R --> A["가챠 카드 · 폭죽<br/>app.js · animation.js"]
@@ -94,6 +99,35 @@ flowchart LR
 ```
 
 ## 🧠 고민했던 것들
+
+<details>
+<summary><b>지역이 늘어도 코드를 고치지 않으려면</b></summary>
+
+검암에서 쓰던 목록에 다른 지역도 담고 싶어졌어요. 지역마다 시트 탭을 만들면 새 지역을 추가할 때마다 코드에 `gid`를 설정해야 해서, 기존 점심·카페 탭 안에 **`지역` 열**을 두기로 했어요.
+
+- 서로 다른 지역의 가게를 섞어 뽑을 일은 없어 지역에는 **[전체] 없이 하나만** 고르게 했어요. 그룹은 그 지역 안에서 필요할 때 고르는 단계예요.
+- 지역을 오갈 때마다 그룹을 다시 고르지 않도록 **지역별 마지막 그룹**을 기억해요. 지역이 하나면 지역 줄을 숨겨 기존처럼 바로 쓸 수 있어요.
+- 이름이 같은 체인점의 평가가 섞이지 않게 평점 키도 **모드 + 지역 + 가게명**으로 나눴어요.
+
+</details>
+
+<details>
+<summary><b>혼잡도는 '확률'이 아니라 '정보'로</b></summary>
+
+늘 붐비는 가게라면 자리가 없을 수도 있어요. 그렇다고 혼잡한 곳이 덜 뽑히게 만들면, 목록의 가게를 같은 확률로 뽑는 원칙과 부딪히고 결과를 예상하기도 어려워져요.
+
+그래서 혼잡도는 **카드에 표시만** 하기로 했어요. 오늘은 기다릴지, 함께 나온 2순위로 갈지는 사람이 판단하면 돼요.
+
+</details>
+
+<details>
+<summary><b>좋아요를 뺀 이유</b></summary>
+
+처음에는 별점과 좋아요를 함께 받았어요. 실제 응답을 보니 **좋아요만 누른 경우는 없고 늘 별점과 함께** 와서, 별점에 더해 알 수 있는 정보가 없었어요.
+
+평가 창을 **별점 하나로 단순화**하고, 여러 가게를 차례로 평가하기 편하게 이름은 왼쪽, 별은 오른쪽에 놓았어요. 기존 폼 질문과 응답은 남겨 둬도 앱에서 보내거나 집계하지 않아요.
+
+</details>
 
 <details>
 <summary><b>DB 없이 "누구나 고칠 수 있는" 데이터를 어디에 둘까?</b></summary>
@@ -182,7 +216,7 @@ lunch-selector/
 │  ├─ csv.js           # CSV 파서
 │  ├─ stores.js        # 행 → 가게 정규화 (휴무·다중 값 파싱)
 │  ├─ data.js          # 불러오기 (10초 제한 시간, 최신 요청만 반영)
-│  ├─ select.js        # 그룹·업종·휴무 필터, 추첨
+│  ├─ select.js        # 지역·그룹·업종·휴무 필터, 추첨
 │  ├─ rating.js        # 평점 집계 · 카드 등급 · 평가 시점 판정
 │  ├─ animation.js     # 릴 · 폭죽 · 순차 페이드 인
 │  ├─ map.js           # 지오코딩 캐시 · 지도 핀 · 카카오맵 링크
@@ -208,4 +242,3 @@ npm test   # Node 22+
 **오늘 점심은 정하셨나요? → [🎰 돌리러 가기](https://colossuscms.github.io/lunch-selector/)**
 
 </div>
-릴리스 때 `js/config.js`의 `APP_VERSION`을 갱신합니다.
