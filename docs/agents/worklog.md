@@ -31,3 +31,7 @@
 - 2026-11-04 10:55 [pm] 사이클 012 완료: 제목 옆 앱 버전 표시(APP_VERSION v2.1) (js/config.js·app.js, index.html, css, README, SETUP, screenshots/012) — DoD 4/4, npm test 83 pass. 010~012 커밋 + 로컬 태그 v2.1(사용자 요청)
 - 2026-11-04 11:02 [codex] 사이클 013 구현 1차: README v2.1 배지·지역 다이어그램·결정 배경3개·실제 시트 이미지/GIF 재촬영 (README.md, docs/images 6개) — npm test 83 pass, 실제 localhost:5173 지도·PNG/GIF 확인, GIF 1,797,701→1,865,459bytes, 소스/태그 변경 없음
 - 2026-11-04 11:20 [pm] 사이클 013 완료: README v2.1 정리(실데이터 스크린샷·데모 GIF 재촬영, 평가 창 이미지, 지역·혼잡도·좋아요 제거 고민 3개, 버전 배지) (README.md, docs/images) — DoD 4/4, npm test 83 pass
+- 2026-11-04 11:30 [pm] 릴리스 v2.1 생성(GitHub·백업 깃, 태그 v2.1=6486b4e, 노트에 SETUP 절대 링크) — 사용자 요청
+- 2026-11-04 11:12 [codex] 사이클 014 구현 1차: 푸터 GitHub 소개 링크·ABOUT_URL 빈 값 숨김 (index.html, js/config.js·app.js, css 외 버전/기록) — npm test 83 pass, Chrome 360/400 라이트/다크·단독 링크·모드/오류/빈 시트 PASS, screenshots/014 4개
+- 2026-11-04 11:14 [codex] 사이클 014 구현 2차: 두 푸터 링크 터치높이40px·박스간격16px (css/style.css 외 버전/기록) — npm test 83 pass, Chrome 360/400 라이트/다크 좌표·단독 링크·오류 상태 PASS, v2- 캡처4개
+- 2026-11-04 11:40 [pm] 사이클 014 완료: 화면 하단 GitHub 소개 링크(ABOUT_URL), 편집 링크와 터치 영역 40px·간격 16px (index.html, js/config.js·app.js, css, screenshots/014) — DoD 4/4, 2차에서 간격 보완, npm test 83 pass

@@ -3,6 +3,8 @@
 // 릴리스 때 화면에 표시할 앱 버전은 여기서 갱신한다.
 export const APP_VERSION = 'v2.1';
 
+export const ABOUT_URL = 'https://github.com/ColossusCMS/lunch-selector';
+
 /** 시트 주소의 /d/ 와 /edit 사이 값. 편집 링크와 gviz 방식에 쓴다. */
 export const SHEET_ID = '1tJtC2QynaFjZUGeonxpqhsQaZse2lrBYwQC8x85Yub4';
 

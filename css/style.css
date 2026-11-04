@@ -347,7 +347,8 @@ h1 {
   color: var(--muted);
 }
 .closed { margin: 0 0 8px; }
-.edit-link { color: var(--muted); }
+.edit-link, .about-link { display: block; width: fit-content; min-height: 40px; padding: 10px 12px; margin-inline: auto; color: var(--muted); }
+.edit-link:not([hidden]) + .about-link { margin-top: 16px; }
 
 [hidden] { display: none !important; }
 

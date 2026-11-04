@@ -12,7 +12,7 @@
       if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
     } catch { /* 저장소를 못 쓰면 시스템 설정을 따른다 */ }
   </script>
-  <link rel="stylesheet" href="css/style.css?v=202611041049">
+  <link rel="stylesheet" href="css/style.css?v=202611041113">
 </head>
 <body>
   <main class="app">
@@ -68,6 +68,7 @@
     <footer class="footer">
       <p id="closed" class="closed" hidden></p>
       <a id="edit-link" class="edit-link" target="_blank" rel="noopener" hidden>✏️ 가게 목록 편집하기</a>
+      <a id="about-link" class="about-link" target="_blank" rel="noopener" hidden>🐙 GitHub에서 소개 보기</a>
     </footer>
   </main>
   <dialog id="rating-dialog" class="rating-dialog" aria-labelledby="rating-title"></dialog>
@@ -90,6 +91,6 @@
       });
     })();
   </script>
-  <script type="module" src="js/app.js?v=202611041049" onerror="window.__lunchStartFailed()"></script>
+  <script type="module" src="js/app.js?v=202611041113" onerror="window.__lunchStartFailed()"></script>
 </body>
 </html>

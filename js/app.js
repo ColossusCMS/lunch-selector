@@ -1,13 +1,13 @@
 // 화면 초기화와 이벤트 처리.
 
-import { APP_VERSION, modes, initialMode, dataUrl, editUrl, KAKAO_MAP_KEY, RATING, ratingEnabled } from './config.js?v=202611041049';
-import { loadStores, fetchCsvRows, createRequestCounter } from './data.js?v=202611041049';
-import { listRegions, listGroups, listCategories, filterCandidates, closedToday, pickTop } from './select.js?v=202611041049';
-import { spinReel, burstConfetti, reducedMotion } from './animation.js?v=202611041049';
-import { createMap, kakaoLink } from './map.js?v=202611041049';
-import { THEME_KEY, THEMES, parseTheme, applyTheme } from './theme.js?v=202611041049';
+import { APP_VERSION, ABOUT_URL, modes, initialMode, dataUrl, editUrl, KAKAO_MAP_KEY, RATING, ratingEnabled } from './config.js?v=202611041113';
+import { loadStores, fetchCsvRows, createRequestCounter } from './data.js?v=202611041113';
+import { listRegions, listGroups, listCategories, filterCandidates, closedToday, pickTop } from './select.js?v=202611041113';
+import { spinReel, burstConfetti, reducedMotion } from './animation.js?v=202611041113';
+import { createMap, kakaoLink } from './map.js?v=202611041113';
+import { THEME_KEY, THEMES, parseTheme, applyTheme } from './theme.js?v=202611041113';
 import { PICK_KEY, ratingKey, aggregateRatings, cardTier, formatStatLine, parsePick, pickStatus,
-  buildRatingBody, applySendResults, dropIfSame, starLabel, ratingModeLabel } from './rating.js?v=202611041049';
+  buildRatingBody, applySendResults, dropIfSame, starLabel, ratingModeLabel } from './rating.js?v=202611041113';
 
 const GROUP_KEY = 'lunch-selector:groups';
 const REGION_KEY = 'lunch-selector:region';
@@ -40,12 +40,13 @@ const els = {
   retry: $('retry'),
   closed: $('closed'),
   editLink: $('edit-link'),
+  aboutLink: $('about-link'),
 };
 
 const state = {
-  /** @type {import('./config.js?v=202611041049').Mode} */
+  /** @type {import('./config.js?v=202611041113').Mode} */
   mode: null,
-  /** @type {import('./stores.js?v=202611041049').Store[]} */
+  /** @type {import('./stores.js?v=202611041113').Store[]} */
   stores: [],
   /** @type {string | null} null이면 지역 미선택, ''는 하위 호환 지역 */
   region: null,
@@ -655,6 +656,8 @@ els.retry.addEventListener('click', load);
 
 els.appVersion.textContent = APP_VERSION;
 els.appVersion.hidden = !APP_VERSION.trim();
+els.aboutLink.hidden = !ABOUT_URL.trim();
+if (ABOUT_URL.trim()) els.aboutLink.href = ABOUT_URL;
 
 renderThemes();
 selectTheme(parseTheme(storage.get(THEME_KEY)));
