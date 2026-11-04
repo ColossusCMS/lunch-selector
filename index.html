@@ -12,7 +12,7 @@
       if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
     } catch { /* 저장소를 못 쓰면 시스템 설정을 따른다 */ }
   </script>
-  <link rel="stylesheet" href="css/style.css?v=202611041325">
+  <link rel="stylesheet" href="css/style.css?v=202611041544">
 </head>
 <body>
   <main class="app">
@@ -72,6 +72,7 @@
     </footer>
   </main>
   <dialog id="rating-dialog" class="rating-dialog" aria-labelledby="rating-title"></dialog>
+  <dialog id="exclude-dialog" class="rating-dialog" aria-labelledby="exclude-title"></dialog>
   <script>
     // 모듈 자체를 불러오지 못해도 오류 안내와 새로 불러오기는 동작한다.
     (function () {
@@ -91,6 +92,6 @@
       });
     })();
   </script>
-  <script type="module" src="js/app.js?v=202611041325" onerror="window.__lunchStartFailed()"></script>
+  <script type="module" src="js/app.js?v=202611041544" onerror="window.__lunchStartFailed()"></script>
 </body>
 </html>

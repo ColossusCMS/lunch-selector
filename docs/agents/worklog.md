@@ -37,3 +37,6 @@
 - 2026-11-04 11:40 [pm] 사이클 014 완료: 화면 하단 GitHub 소개 링크(ABOUT_URL), 편집 링크와 터치 영역 40px·간격 16px (index.html, js/config.js·app.js, css, screenshots/014) — DoD 4/4, 2차에서 간격 보완, npm test 83 pass
 - 2026-11-04 13:25 [codex] 사이클 015 구현 1차: 평가 제목 둘째 줄 .82em·보조색·일반 굵기 (css/style.css 한 규칙 외 버전/기록) — npm test 83 pass, Chrome 점심/카페×360/400×라이트/다크 computed style·한 줄 PASS, impl-8개 저장·PM 원본4개 해시 보존
 - 2026-11-04 13:26 [pm] 사이클 015 완료: 평가 창 제목 2번째 줄 작고 연하게(.82em·보통 굵기·--muted) (css/style.css 한 규칙, screenshots/015) — DoD 3/3, 사용자가 샘플 보고 채택, npm test 83 pass
+- 2026-11-04 15:45 [codex] 사이클 016 구현 1차: 기기별 가게7일 제외·확인창·후보 전부 제외 시 대체 추첨 (js/exclude.js 신규, app.js, index, css, tests/exclude.test.js, README 외 버전/기록) — npm test 91 pass, Chrome 25회 제외/8일 만료/전부 제외/저장예외/평가독립 PASS, screenshots/016 8개
+- 2026-11-04 15:45 [pm] 사이클 016 완료: 다녀온 가게 일주일 제외(카드 🙅 제외 버튼·확인창·기기 저장 7일·전부 제외 시 대체) (js/exclude.js·app.js, index.html, css, tests, README, screenshots/016) — DoD 4/4, 사용자가 시안 보고 채택, npm test 91 pass
+- 2026-11-04 15:49 [pm] 단위: v2.2 지정(APP_VERSION·README 배지), README 흐름도에 제외 단계·'다녀온 가게를 백엔드 없이 빼려면' 배경 추가 (js/config.js, README.md) — 사용자 요청, npm test 91 pass

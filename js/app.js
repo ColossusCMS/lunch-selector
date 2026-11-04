@@ -1,13 +1,15 @@
 // 화면 초기화와 이벤트 처리.
 
-import { APP_VERSION, ABOUT_URL, modes, initialMode, dataUrl, editUrl, KAKAO_MAP_KEY, RATING, ratingEnabled } from './config.js?v=202611041325';
-import { loadStores, fetchCsvRows, createRequestCounter } from './data.js?v=202611041325';
-import { listRegions, listGroups, listCategories, filterCandidates, closedToday, pickTop } from './select.js?v=202611041325';
-import { spinReel, burstConfetti, reducedMotion } from './animation.js?v=202611041325';
-import { createMap, kakaoLink } from './map.js?v=202611041325';
-import { THEME_KEY, THEMES, parseTheme, applyTheme } from './theme.js?v=202611041325';
+import { APP_VERSION, ABOUT_URL, modes, initialMode, dataUrl, editUrl, KAKAO_MAP_KEY, RATING, ratingEnabled } from './config.js?v=202611041544';
+import { loadStores, fetchCsvRows, createRequestCounter } from './data.js?v=202611041544';
+import { listRegions, listGroups, listCategories, filterCandidates, closedToday, pickTop } from './select.js?v=202611041544';
+import { spinReel, burstConfetti, reducedMotion } from './animation.js?v=202611041544';
+import { createMap, kakaoLink } from './map.js?v=202611041544';
+import { THEME_KEY, THEMES, parseTheme, applyTheme } from './theme.js?v=202611041544';
 import { PICK_KEY, ratingKey, aggregateRatings, cardTier, formatStatLine, parsePick, pickStatus,
-  buildRatingBody, applySendResults, dropIfSame, starLabel, ratingModeLabel } from './rating.js?v=202611041325';
+  buildRatingBody, applySendResults, dropIfSame, starLabel, ratingModeLabel } from './rating.js?v=202611041544';
+
+import { EXCLUDE_KEY, EXCLUDE_DAYS, readExcluded, withoutExcluded } from './exclude.js?v=202611041544';
 
 const GROUP_KEY = 'lunch-selector:groups';
 const REGION_KEY = 'lunch-selector:region';
@@ -31,6 +33,7 @@ const els = {
   cardFlip: $('card-flip'),
   rank1: $('rank1'),
   ratingDialog: $('rating-dialog'),
+  excludeDialog: $('exclude-dialog'),
   announce: $('announce'),
   spin: $('spin'),
   rank2: $('rank2'),
@@ -44,9 +47,9 @@ const els = {
 };
 
 const state = {
-  /** @type {import('./config.js?v=202611041325').Mode} */
+  /** @type {import('./config.js?v=202611041544').Mode} */
   mode: null,
-  /** @type {import('./stores.js?v=202611041325').Store[]} */
+  /** @type {import('./stores.js?v=202611041544').Store[]} */
   stores: [],
   /** @type {string | null} null이면 지역 미선택, ''는 하위 호환 지역 */
   region: null,
@@ -69,7 +72,7 @@ const storage = {
     try { return localStorage.getItem(key); } catch { return null; }
   },
   set(key, value) {
-    try { localStorage.setItem(key, value); } catch { /* 저장 불가 환경 무시 */ }
+    try { localStorage.setItem(key, value); return true; } catch { return false; }
   },
   remove(key) {
     try { localStorage.removeItem(key); } catch { /* 저장 불가 환경 무시 */ }
@@ -170,12 +173,65 @@ function fillCard(el, rank, store) {
     textContent: '📍 카카오맵',
   });
   inner.append(link);
+  const exclude = Object.assign(document.createElement('button'), {
+    type: 'button', className: 'exclude-btn', textContent: '🙅 제외',
+  });
+  const key = excludeKey(store);
+  exclude.setAttribute('aria-label', `${store.name} ${EXCLUDE_DAYS}일 동안 제외`);
+  if (Object.hasOwn(loadExcluded(), key)) markExcluded(exclude);
+  exclude.addEventListener('click', () => confirmExclude(store, key, exclude));
+  inner.append(exclude);
   el.replaceChildren(medal, inner);
   if (rank === 1 && tier?.id === 'unknown') {
     const veil = make('card-veil', '?');
     veil.setAttribute('aria-hidden', 'true');
     el.append(veil);
   }
+}
+
+const excludeKey = (store) => ratingKey(state.mode.id, store.region, store.name);
+
+function loadExcluded() {
+  const raw = storage.get(EXCLUDE_KEY);
+  const saved = readExcluded(raw, Date.now());
+  const clean = JSON.stringify(saved);
+  if (raw !== null && raw !== clean) storage.set(EXCLUDE_KEY, clean);
+  return saved;
+}
+
+function markExcluded(button) {
+  button.textContent = '제외됨';
+  button.disabled = true;
+}
+
+function confirmExclude(store, key, button) {
+  const dialog = els.excludeDialog;
+  if (typeof dialog.showModal !== 'function') return;
+  const title = document.createElement('h2');
+  title.id = 'exclude-title';
+  const first = document.createElement('span');
+  first.textContent = `${store.name}을(를) 제외할까요?`;
+  const second = document.createElement('span');
+  second.textContent = '제외하면 일주일 동안 룰렛에 나타나지 않아요';
+  title.append(first, document.createTextNode(' '), second);
+  const cancel = Object.assign(document.createElement('button'), {
+    type: 'button', textContent: '취소', className: 'rating-later',
+  });
+  const confirm = Object.assign(document.createElement('button'), {
+    type: 'button', textContent: '제외하기', className: 'rating-send',
+  });
+  cancel.addEventListener('click', () => dialog.close());
+  confirm.addEventListener('click', () => {
+    const saved = { ...loadExcluded(), [key]: Date.now() };
+    if (storage.set(EXCLUDE_KEY, JSON.stringify(saved))) markExcluded(button);
+    dialog.close();
+  });
+  const actions = document.createElement('div');
+  actions.className = 'rating-actions';
+  actions.append(cancel, confirm);
+  dialog.replaceChildren(title, actions);
+  dialog.showModal();
+  cancel.focus();
 }
 
 function savePick(pick) {
@@ -520,10 +576,12 @@ async function spin() {
     setMessage('조건에 맞는 가게가 없어요');
     return;
   }
+  const pool = withoutExcluded(candidates, loadExcluded(), excludeKey);
   state.spinning = true;
   setControlsDisabled(true);
   try {
-    await present(pickTop(candidates), candidates);
+    await present(pickTop(pool.list), pool.list);
+    if (pool.fallback) setMessage('제외한 가게뿐이라 이번엔 전체에서 뽑았어요');
   } finally {
     state.spinning = false;
     setControlsDisabled(false);
