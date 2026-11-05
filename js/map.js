@@ -49,29 +49,41 @@ export function coreAddress(address) {
   return core && core !== address.trim() ? core : null;
 }
 
-let sdk = null;
-
-/** @returns {Promise<any>} kakao 전역 객체 */
-function loadSdk(key) {
-  sdk ??= new Promise((resolve, reject) => {
-    const script = document.createElement('script');
-    script.src = `${SDK_URL}?appkey=${encodeURIComponent(key)}&autoload=false&libraries=services`;
-    const timer = setTimeout(() => reject(new Error('카카오맵 SDK 응답 없음')), SDK_TIMEOUT);
-    script.onload = () => window.kakao.maps.load(() => {
-      clearTimeout(timer);
-      resolve(window.kakao);
-    });
-    script.onerror = () => {
-      clearTimeout(timer);
-      reject(new Error('카카오맵 SDK를 불러오지 못했어요'));
-    };
-    document.head.append(script);
-  }).catch((err) => {
-    sdk = null; // 다음에 다시 시도
-    throw err;
-  });
-  return sdk;
+/** 문서/타이머를 주입해 실패한 SDK 시도의 정리와 재시도를 검증한다. */
+export function createSdkLoader({ document: doc = globalThis.document,
+  getKakao = () => globalThis.kakao, setTimer = setTimeout, clearTimer = clearTimeout,
+  timeout = SDK_TIMEOUT } = {}) {
+  let sdk = null;
+  return (key) => {
+    sdk ??= new Promise((resolve, reject) => {
+      const script = doc.createElement('script');
+      let finished = false;
+      let timer;
+      const detach = () => { clearTimer(timer); script.onload = null; script.onerror = null; };
+      const fail = (error) => {
+        if (finished) return;
+        finished = true; detach(); script.remove(); reject(error);
+      };
+      script.src = `${SDK_URL}?appkey=${encodeURIComponent(key)}&autoload=false&libraries=services`;
+      timer = setTimer(() => fail(new Error('카카오맵 SDK 응답 없음')), timeout);
+      script.onload = () => {
+        if (finished) return;
+        try {
+          const kakao = getKakao();
+          kakao.maps.load(() => {
+            if (finished) return;
+            finished = true; detach(); resolve(kakao);
+          });
+        } catch (error) { fail(error); }
+      };
+      script.onerror = () => fail(new Error('카카오맵 SDK를 불러오지 못했어요'));
+      try { doc.head.append(script); } catch (error) { fail(error); }
+    }).catch((error) => { sdk = null; throw error; });
+    return sdk;
+  };
 }
+
+const loadSdk = createSdkLoader();
 
 /**
  * @param {string} key 카카오 JavaScript 키. 비어 있으면 지도 기능이 꺼진다.

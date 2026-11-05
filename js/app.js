@@ -1,18 +1,19 @@
 // 화면 초기화와 이벤트 처리.
 
-import { APP_VERSION, ABOUT_URL, modes, initialMode, dataUrl, editUrl, KAKAO_MAP_KEY, RATING, ratingEnabled } from './config.js?v=202611051333';
-import { loadStores, fetchCsvRows, createRequestCounter } from './data.js?v=202611051333';
-import { listRegions, listGroups, listCategories, filterCandidates, closedToday, pickTop } from './select.js?v=202611051333';
-import { burstConfetti, reducedMotion } from './animation.js?v=202611051333';
-import { playFirstPick, showFirstPick } from './reveal.js?v=202611051333';
-import { canReplay } from './reveal-plan.js?v=202611051333';
-import { createSound } from './sound.js?v=202611051333';
-import { createMap, kakaoLink } from './map.js?v=202611051333';
-import { THEME_KEY, THEMES, parseTheme, applyTheme } from './theme.js?v=202611051333';
+import { APP_VERSION, ABOUT_URL, modes, initialMode, dataUrl, editUrl, KAKAO_MAP_KEY, RATING, ratingEnabled } from './config.js?v=419ee43b2143';
+import { loadStores, fetchCsvRows, createRequestCounter } from './data.js?v=419ee43b2143';
+import { listRegions, listGroups, listCategories, filterCandidates, closedToday, pickTop } from './select.js?v=419ee43b2143';
+import { burstConfetti, reducedMotion } from './animation.js?v=419ee43b2143';
+import { playFirstPick, showFirstPick } from './reveal.js?v=419ee43b2143';
+import { canReplay } from './reveal-plan.js?v=419ee43b2143';
+import { createSound } from './sound.js?v=419ee43b2143';
+import { createMap, kakaoLink } from './map.js?v=419ee43b2143';
+import { THEME_KEY, THEMES, parseTheme, applyTheme } from './theme.js?v=419ee43b2143';
 import { PICK_KEY, ratingKey, aggregateRatings, cardTier, formatStatLine, parsePick, pickStatus,
-  buildRatingBody, applySendResults, dropIfSame, starLabel, ratingModeLabel } from './rating.js?v=202611051333';
+  buildRatingBody, applySendResults, dropIfSame, starLabel, ratingModeLabel,
+  shouldCheckRatings, shouldRefreshRatings } from './rating.js?v=419ee43b2143';
 
-import { EXCLUDE_KEY, EXCLUDE_DAYS, readExcluded, withoutExcluded } from './exclude.js?v=202611051333';
+import { EXCLUDE_KEY, EXCLUDE_DAYS, readExcluded, withoutExcluded } from './exclude.js?v=419ee43b2143';
 
 const GROUP_KEY = 'lunch-selector:groups';
 const REGION_KEY = 'lunch-selector:region';
@@ -52,9 +53,9 @@ const els = {
 };
 
 const state = {
-  /** @type {import('./config.js?v=202611051333').Mode} */
+  /** @type {import('./config.js?v=419ee43b2143').Mode} */
   mode: null,
-  /** @type {import('./stores.js?v=202611051333').Store[]} */
+  /** @type {import('./stores.js?v=419ee43b2143').Store[]} */
   stores: [],
   /** @type {string | null} null이면 지역 미선택, ''는 하위 호환 지역 */
   region: null,
@@ -379,12 +380,22 @@ function showRatingCard(pick) {
   dialog.showModal();
 }
 
+let ratingsReadAt = null;
+let ratingsFetch = null;
+
+function refreshRatings() {
+  if (ratingsFetch || !shouldRefreshRatings(ratingsReadAt, Date.now())) return;
+  // 요청을 공유하고, 성공한 시각부터5분 동안 다시 읽지 않는다. 기존 카드는 그대로 둔다.
+  ratingsFetch = fetchCsvRows(RATING.csvUrl)
+    .then((rows) => { state.ratings = aggregateRatings(rows); ratingsReadAt = Date.now(); })
+    .catch((err) => { console.warn('평점을 불러오지 못했어요', err); })
+    .finally(() => { ratingsFetch = null; });
+}
+
 function initRatings() {
-  if (!ratingsOn) return;
-  // 가게 목록과 독립적으로 읽는다. 늦게 도착한 평점은 다음 결과부터 쓴다.
-  fetchCsvRows(RATING.csvUrl)
-    .then((rows) => { state.ratings = aggregateRatings(rows); })
-    .catch((err) => { console.warn('평점을 불러오지 못했어요', err); });
+  if (!shouldCheckRatings({ enabled: ratingsOn, spinning: state.spinning, replaying: state.replaying,
+    dialogOpen: [els.ratingDialog, els.excludeDialog, els.revealDialog].some(dialog => dialog.open) })) return;
+  refreshRatings();
   const pick = parsePick(storage.get(PICK_KEY));
   if (!pick) return;
   const status = pickStatus(pick, Date.now(), modes().map((m) => m.id));
@@ -756,6 +767,12 @@ els.theme.addEventListener('click', (event) => {
 });
 
 els.spin.addEventListener('click', spin);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') initRatings();
+});
+window.addEventListener('pageshow', (event) => {
+  if (event.persisted) initRatings();
+});
 els.includeExcluded.checked = false;
 els.retry.addEventListener('click', load);
 

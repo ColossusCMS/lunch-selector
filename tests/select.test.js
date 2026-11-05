@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { listRegions, listGroups, listCategories, filterCandidates, closedToday, pickTop } from '../js/select.js';
+import { rowsToStores } from '../js/stores.js';
 
 const store = (name, categories, groups, closedDays, region = '') =>
   ({ name, categories, groups, closedDays, region, memo: '' });
@@ -15,6 +16,17 @@ const S = [
   store('국수나무', ['한식'], ['1팀'], [3]),
 ];
 const names = (arr) => arr.map((s) => s.name);
+
+test('중복 시트 행을 합친 후보는 추첨 순위에 같은 가게가 겹치지 않는다', (t) => {
+  t.mock.method(console, 'warn', () => {});
+  const candidates = rowsToStores([['가게명', '지역'],
+    ['김밥', '검암'], ['김밥', '검암'], ['국밥', '검암'], ['냉면', '검암']]);
+  assert.equal(candidates.length, 3);
+  for (let i = 0; i < 100; i++) {
+    const picks = pickTop(candidates, 3, () => i / 100);
+    assert.equal(new Set(picks.map(s => s.name)).size, 3);
+  }
+});
 
 test('지역별 그룹·업종·휴무 분리와 그룹 없는 지역', () => {
   const stores = [store('A', ['한식'], ['3층'], [1], '검암'), store('B', ['중식'], ['3층'], [1], '을지로'), store('C', ['분식'], [], [], '검암'), store('D', [], [], [], '판교')];

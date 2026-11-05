@@ -3,6 +3,25 @@ import assert from 'node:assert/strict';
 import { ratingKey, aggregateRatings, cardTier, formatStatLine, parsePick, pickStatus, buildRatingBody, applySendResults, dropIfSame } from '../js/rating.js';
 import { starLabel } from '../js/rating.js';
 import { ratingModeLabel } from '../js/rating.js';
+import { shouldCheckRatings, shouldRefreshRatings, RATINGS_REFRESH_MS } from '../js/rating.js';
+
+test('평가 재확인은 꺼짐·돌리는 중·다시보기 중·열린 창을 각각 건너뛴다', () => {
+  assert.equal(shouldCheckRatings({ enabled: true }), true);
+  for (const condition of [{ enabled: false }, { spinning: true }, { replaying: true }, { dialogOpen: true }]) {
+    assert.equal(shouldCheckRatings({ enabled: true, ...condition }), false);
+  }
+});
+
+test('평점은 처음 또는 마지막 성공 이후 정확히5분부터 다시 읽는다', () => {
+  const now = 1_000_000;
+  assert.equal(RATINGS_REFRESH_MS, 300_000);
+  assert.equal(shouldRefreshRatings(null, now), true);
+  assert.equal(shouldRefreshRatings(now, now), false);
+  assert.equal(shouldRefreshRatings(now, now + 299_000), false);
+  assert.equal(shouldRefreshRatings(now, now + 299_999), false);
+  assert.equal(shouldRefreshRatings(now, now + 300_000), true);
+  assert.equal(shouldRefreshRatings(now, now + 300_001), true);
+});
 
 test('ratingModeLabel: 모드 이모지 분리와 이모지 없는 라벨 대체', () => {
   assert.deepEqual(ratingModeLabel('🍱 점심'), { icon: '🍱', name: '점심' });

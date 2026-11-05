@@ -5,6 +5,15 @@
 
 export const PICK_KEY = 'lunch-selector:last-pick';
 export const MIN_WAIT_MS = 30 * 60 * 1000;
+export const RATINGS_REFRESH_MS = 5 * 60 * 1000;
+
+export function shouldCheckRatings({ enabled, spinning = false, replaying = false, dialogOpen = false }) {
+  return Boolean(enabled && !spinning && !replaying && !dialogOpen);
+}
+
+export function shouldRefreshRatings(lastReadAt, now) {
+  return lastReadAt === null || now - lastReadAt >= RATINGS_REFRESH_MS;
+}
 export const MAX_DAYS = 3;
 export const TIER_MIN_COUNT = 2;
 export const TIERS = [

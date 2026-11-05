@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { kakaoLink, cachedLookup, coreAddress } from '../js/map.js';
+import { kakaoLink, cachedLookup, coreAddress, createSdkLoader } from '../js/map.js';
 
 test('kakaoLink: 좌표가 있으면 그 위치를 핀으로 연다', () => {
   assert.equal(
@@ -58,4 +58,71 @@ test('coreAddress: 지번 주소는 번지까지만 남긴다', () => {
 test('coreAddress: 더 줄일 수 없으면 null', () => {
   assert.equal(coreAddress('인천 서해구 승학로 508'), null);
   assert.equal(coreAddress('아무거나'), null);
+});
+
+function sdkEnvironment() {
+  const scripts = [], timers = new Map(), callbacks = [];
+  let timerId = 0, loads = 0;
+  const kakao = { maps: { load(callback) { loads += 1; callbacks.push(callback); } } };
+  const document = {
+    head: { append(script) { scripts.push(script); } },
+    createElement(tag) {
+      assert.equal(tag, 'script');
+      return { remove() { const i = scripts.indexOf(this); if (i !== -1) scripts.splice(i, 1); } };
+    },
+  };
+  const load = createSdkLoader({ document, getKakao: () => kakao,
+    setTimer(fn, ms) { assert.equal(ms, 8000); timers.set(++timerId, fn); return timerId; },
+    clearTimer(id) { timers.delete(id); } });
+  return { load, scripts, timers, callbacks, kakao, loads: () => loads,
+    expire() { [...timers.values()][0](); } };
+}
+
+test('SDK 타임아웃은 script를 제거하고 재시도 시 하나만 삽입, 늦은 onload 무시', async () => {
+  const env = sdkEnvironment();
+  const first = env.load('key');
+  const old = env.scripts[0], lateLoad = old.onload;
+  const rejected = assert.rejects(first, /응답 없음/);
+  env.expire(); await rejected;
+  assert.equal(env.scripts.length, 0);
+  assert.equal(old.onload, null);
+  assert.equal(old.onerror, null);
+  const retry = env.load('key');
+  assert.equal(env.scripts.length, 1);
+  lateLoad(); assert.equal(env.loads(), 0);
+  env.scripts[0].onload(); env.callbacks[0]();
+  assert.equal(await retry, env.kakao);
+  assert.equal(env.timers.size, 0);
+});
+
+test('SDK onerror 정리 후 재시도와 동시 요청 공유, 성공 뒤 다시 삽입하지 않음', async () => {
+  const env = sdkEnvironment();
+  const first = env.load('key');
+  assert.equal(env.load('key'), first);
+  const rejected = assert.rejects(first, /불러오지 못/);
+  env.scripts[0].onerror(); await rejected;
+  assert.equal(env.scripts.length, 0);
+  assert.equal(env.timers.size, 0);
+  const retry = env.load('key');
+  assert.equal(env.load('key'), retry);
+  env.scripts[0].onload(); env.callbacks[0]();
+  assert.equal(await retry, env.kakao);
+  assert.equal(await env.load('key'), env.kakao);
+  assert.equal(env.scripts.length, 1);
+  assert.equal(env.loads(), 1);
+});
+
+test('SDK maps.load 대기 중 만료된 콜백은 새 시도를 완료시키지 않음', async () => {
+  const env = sdkEnvironment();
+  const first = env.load('key');
+  env.scripts[0].onload();
+  const rejected = assert.rejects(first, /응답 없음/);
+  env.expire(); await rejected;
+  const retry = env.load('key');
+  env.callbacks[0]();
+  assert.equal(env.scripts.length, 1);
+  assert.equal(env.timers.size, 1);
+  env.scripts[0].onload(); env.callbacks[1]();
+  assert.equal(await retry, env.kakao);
+  assert.equal(env.timers.size, 0);
 });

@@ -58,3 +58,7 @@
 - 2026-11-05 14:20 [pm] 릴리스 v2.3 생성(GitHub·백업 깃, 태그 v2.3=be6e49e) + 누락됐던 v2.2 릴리스 생성 — 사용자 요청
 - 2026-11-05 13:58 [codex] 사이클 024 구현 1차: README v2.3 실제 시트/지도 재촬영·상위 등급 연출2장·GIF 교체 (README·docs/images·인계 기록만) — npm test 103 pass, 이미지8경로/폼POST0/런타임0/rating 해시 보존 PASS, GIF 1.87→1.51MB
 - 2026-11-05 14:45 [pm] 사이클 024 완료: README 이미지 v2.3 재촬영(화면 4장·demo.gif 새 연출 흐름) + 연출 장면 2장 추가 (README.md, docs/images) — DoD 4/4, 소스·버전 변경 없음
+- 2026-11-05 18:33 [codex] 사이클 025 구현 1차: H-7·H-3/H-4·H-6·H-1·H-2 순 정비, H-5 제외 (초기 버전 숨김·SETUP·SDK 정리·중복 가게 합치기·콘텐츠 해시 버전) — npm test 111 pass, Chrome 중복25회/지도SDK1개·운영58/15 유지·bump 누락 실패/복구 PASS, hash cb6fa6de494c
+- 2026-11-05 18:34 [pm] 사이클 025 완료: 정비 1차 H-7 옛 버전 표시 제거·H-3/H-4 SETUP 정정(웹 게시 기본, 공유는 편집자 지정)·H-6 SDK 재시도 정리·H-1 같은 지역+가게명 병합·H-2 콘텐츠 해시 버전(bump 누락 시 테스트 실패) (index.html, js/map.js·stores.js, scripts/, tests, docs/SETUP.md, README) — DoD 6/6, npm test 111 pass. H-5 대기
+- 2026-11-05 19:02 [codex] 사이클 026 구현 1차: visible/persisted pageshow 평가 재확인·평점5분 성공 캐시/요청 공유·busy/dialog 건너뛰기 (app·rating·tests·README 외 버전/기록) — npm test 113 pass, Chrome 29/31분·만료·각busy/창·요청1→1→2·실패보존/지도 회귀 PASS, hash 419ee43b2143
+- 2026-11-05 19:02 [pm] 사이클 026 완료: 탭 복귀(visibilitychange·bfcache pageshow) 시 평가 창 재확인, 돌리기·연출·창 열림 중 건너뜀, 평점 CSV 5분 간격 재읽기 (js/app.js·rating.js, tests, README) — DoD 5/5, npm test 113 pass. 실기기 재확인은 배포 후

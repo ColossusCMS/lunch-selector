@@ -95,3 +95,38 @@ test('rowsToStores: 주소 열을 앞뒤 공백 없이 읽는다', () => {
   const [store] = rowsToStores([['가게명', '그룹', '주소'], ['본죽', '2팀', ' 서울 중구 세종대로 110 ']]);
   assert.equal(store.address, '서울 중구 세종대로 110');
 });
+
+test('같은 지역·가게는 합집합으로 합치고 나머지 값은 첫 행 유지', (t) => {
+  const warn = t.mock.method(console, 'warn', () => {});
+  const rows = [
+    ['가게명', '지역', '그룹', '업종', '정기휴무', '혼잡도', '메모', '주소'],
+    [' 김밥 ', ' 검암 ', '4층,3층', '한식,분식', '월', '혼잡', '첫 메모', '첫 주소'],
+    ['', '', '', '', '', '', '', ''],
+    ['김밥', '검암', '3층,5층', '분식,국밥', '화', '여유', '다음 메모', '다음 주소'],
+    ['김밥', '검암', '4층,6층', '중식,한식', '', '', '', ''],
+  ];
+  const original = structuredClone(rows);
+  assert.deepEqual(rowsToStores(rows), [{ name: '김밥', region: '검암',
+    groups: ['4층', '3층', '5층', '6층'], categories: ['한식', '분식', '국밥', '중식'],
+    closedDays: [1], crowd: '혼잡', memo: '첫 메모', address: '첫 주소' }]);
+  assert.deepEqual(rows, original);
+  assert.equal(warn.mock.callCount(), 2);
+  assert.match(warn.mock.calls[0].arguments[0], /검암.*김밥.*2, 4행.*2개 행/);
+  assert.match(warn.mock.calls[1].arguments[0], /검암.*김밥.*2, 4, 5행.*3개 행/);
+});
+
+test('같은 이름도 다른 지역이면 별개, 첫 행의 빈 값도 그대로 유지', (t) => {
+  const warn = t.mock.method(console, 'warn', () => {});
+  const result = rowsToStores([
+    ['가게명', '지역', '그룹', '업종', '메모', '혼잡도', '정기휴무', '주소'],
+    ['김밥', '검암', '', '', '', '', '', ''],
+    ['김밥', '을지로', '3층', '분식', '다른 지역', '여유', '일', '서울'],
+    ['김밥', '검암', '4층', '한식', '나중 값', '보통', '토', '인천'],
+  ]);
+  assert.equal(result.length, 2);
+  assert.deepEqual(result[0], { name: '김밥', region: '검암', groups: ['4층'], categories: ['한식'],
+    memo: '', crowd: null, closedDays: [], address: '' });
+  assert.equal(result[1].region, '을지로');
+  assert.equal(result[1].memo, '다른 지역');
+  assert.equal(warn.mock.callCount(), 1);
+});

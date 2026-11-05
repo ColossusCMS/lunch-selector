@@ -1,10 +1,9 @@
-// 배포 전 로컬 CSS·모듈 참조에 같은 시각 버전을 붙인다.
+// 배포 전 로컬 CSS·모듈 참조에 같은 콘텐츠 해시 버전을 붙인다.
 import { readFile, readdir, writeFile } from 'node:fs/promises';
+import { sourceVersion } from './version-hash.mjs';
 
 const root = new URL('../', import.meta.url);
-const now = new Date();
-const pad = (n) => String(n).padStart(2, '0');
-const version = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}`;
+const version = await sourceVersion(root);
 const files = ['index.html', ...(await readdir(new URL('js/', root))).filter((s) => s.endsWith('.js')).map((s) => `js/${s}`)];
 let changed = 0;
 for (const file of files) {

@@ -62,21 +62,22 @@ export function rowsToStores(rows) {
   const hasRegions = rows.slice(1).some((row) => cell(row, 'name').trim() && cell(row, 'region').trim());
   const stores = rows
     .slice(1)
-    .filter((row) => cell(row, 'name').trim() !== '')
-    .filter((row) => {
+    .map((row, index) => ({ row, rowNumber: index + 2 }))
+    .filter(({ row }) => cell(row, 'name').trim() !== '')
+    .filter(({ row }) => {
       if (hasRegions && splitMulti(cell(row, 'region')).length === 0) {
         console.warn(`지역이 비어 있어 나오지 않습니다: ${cell(row, 'name')}`);
         return false;
       }
       return true;
     })
-    .map((row) => {
+    .map(({ row, rowNumber }) => {
       const region = cell(row, 'region').trim();
       if (/[,，]/.test(region)) console.warn(`지역은 첫 값만 사용합니다: ${region}`);
       const crowd = cell(row, 'crowd').trim();
       const validCrowd = ['여유', '보통', '혼잡'].includes(crowd);
       if (crowd && !validCrowd) console.warn(`알 수 없는 혼잡도: ${crowd}`);
-      return {
+      return { rowNumber, store: {
         name: cell(row, 'name').trim(),
         categories: splitMulti(cell(row, 'categories')),
         groups: splitMulti(cell(row, 'groups')),
@@ -85,8 +86,21 @@ export function rowsToStores(rows) {
         crowd: validCrowd ? crowd : null,
         memo: cell(row, 'memo').trim(),
         address: cell(row, 'address').trim(),
-      };
+      } };
     });
 
-  return stores;
+  const merged = new Map();
+  for (const { store, rowNumber } of stores) {
+    const key = JSON.stringify([store.region, store.name]);
+    const previous = merged.get(key);
+    if (!previous) {
+      merged.set(key, { store, rows: [rowNumber] });
+      continue;
+    }
+    previous.rows.push(rowNumber);
+    previous.store.groups = [...new Set([...previous.store.groups, ...store.groups])];
+    previous.store.categories = [...new Set([...previous.store.categories, ...store.categories])];
+    console.warn(`중복 가게를 합칩니다: 지역 "${store.region || '(지역 없음)'}", 가게 "${store.name}" — 시트 ${previous.rows.join(', ')}행 (${previous.rows.length}개 행)`);
+  }
+  return [...merged.values()].map(({ store }) => store);
 }
