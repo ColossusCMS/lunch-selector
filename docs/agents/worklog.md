@@ -55,3 +55,6 @@
 - 2026-11-05 13:36 [codex] 사이클 023 구현 1차: 1순위 상위 등급 다시보기·창 안 룰렛부터 전체 재생·회차 메모리 보존 (app·reveal·plan·animation·css·tests·README 외 버전/기록) — npm test 103 pass, Chrome 3등급 실측·3회 반복·결과/포커스 보존·초기화/회귀 PASS, screenshots/023 6개
 - 2026-11-05 13:50 [pm] 사이클 023 완료: 1순위 연출 다시보기(에메랄드 이상 1순위 카드 오른쪽 아래 버튼, 창 안 룰렛부터 전체 재생, 결과 화면 불변) (js/app.js·reveal.js·reveal-plan.js·animation.js, css, tests, README, screenshots/023) — DoD 4/4, npm test 103 pass
 - 2026-11-05 14:00 [pm] 단위: v2.3 지정(APP_VERSION·README 배지), 릴리스 노트(v2.2 누락분 포함)·태그 스크립트 준비 — 사용자 요청, npm test 103 pass
+- 2026-11-05 14:20 [pm] 릴리스 v2.3 생성(GitHub·백업 깃, 태그 v2.3=be6e49e) + 누락됐던 v2.2 릴리스 생성 — 사용자 요청
+- 2026-11-05 13:58 [codex] 사이클 024 구현 1차: README v2.3 실제 시트/지도 재촬영·상위 등급 연출2장·GIF 교체 (README·docs/images·인계 기록만) — npm test 103 pass, 이미지8경로/폼POST0/런타임0/rating 해시 보존 PASS, GIF 1.87→1.51MB
+- 2026-11-05 14:45 [pm] 사이클 024 완료: README 이미지 v2.3 재촬영(화면 4장·demo.gif 새 연출 흐름) + 연출 장면 2장 추가 (README.md, docs/images) — DoD 4/4, 소스·버전 변경 없음

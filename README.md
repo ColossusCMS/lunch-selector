@@ -16,7 +16,7 @@
 ![Tests](https://img.shields.io/badge/tests-103_passing-2f9e44)
 ![Version](https://img.shields.io/badge/version-v2.3-e8590c)
 
-<img src="docs/images/demo.gif" alt="돌리기 버튼을 누르면 가게 이름이 빠르게 돌다가 멈추고, 폭죽과 함께 1순위가 정해진 뒤 2·3순위 카드와 지도가 나타나는 모습" width="320">
+<img src="docs/images/demo.gif" alt="카드 안 룰렛이 상위 등급 공개 창으로 이어지고, 업종·등급 단서와 1순위 결과를 본 뒤 결과 카드와 지도를 보여주는 모습" width="320">
 
 </div>
 
@@ -62,6 +62,17 @@
     <td><img src="docs/images/lunch-dark.png" alt="점심 모드 다크 테마 결과 화면" width="200"></td>
     <td><img src="docs/images/cafe-light.png" alt="카페 모드 라이트 테마 결과 화면" width="200"></td>
     <td><img src="docs/images/cafe-dark.png" alt="카페 모드 다크 테마 결과 화면" width="200"></td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <th>에메랄드 등급 단서</th>
+    <th>1순위 공개 · 카운트다운</th>
+  </tr>
+  <tr>
+    <td><img src="docs/images/reveal-grade.png" alt="초록빛과 에메랄드 컷 보석으로 등급을 알리는 연출 장면" width="240"></td>
+    <td><img src="docs/images/reveal-result.png" alt="봉평메밀마당 에메랄드 카드와 결과 보기 버튼·자동 닫기 카운트다운" width="240"></td>
   </tr>
 </table>
 
