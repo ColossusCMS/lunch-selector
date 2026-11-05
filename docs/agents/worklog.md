@@ -40,3 +40,18 @@
 - 2026-11-04 15:45 [codex] 사이클 016 구현 1차: 기기별 가게7일 제외·확인창·후보 전부 제외 시 대체 추첨 (js/exclude.js 신규, app.js, index, css, tests/exclude.test.js, README 외 버전/기록) — npm test 91 pass, Chrome 25회 제외/8일 만료/전부 제외/저장예외/평가독립 PASS, screenshots/016 8개
 - 2026-11-04 15:45 [pm] 사이클 016 완료: 다녀온 가게 일주일 제외(카드 🙅 제외 버튼·확인창·기기 저장 7일·전부 제외 시 대체) (js/exclude.js·app.js, index.html, css, tests, README, screenshots/016) — DoD 4/4, 사용자가 시안 보고 채택, npm test 91 pass
 - 2026-11-04 15:49 [pm] 단위: v2.2 지정(APP_VERSION·README 배지), README 흐름도에 제외 단계·'다녀온 가게를 백엔드 없이 빼려면' 배경 추가 (js/config.js, README.md) — 사용자 요청, npm test 91 pass
+- 2026-11-05 11:10 [codex] 사이클 017 구현 1차: 돌리기 왼쪽 제외 포함 체크·일시적 후보 포함 옵션 (exclude.js·app.js, index, css, tests, README 외 버전/기록) — npm test 93 pass, Chrome 해제/체크 각25회·저장불변·비활성·6테마조합 PASS, screenshots/017 6개
+- 2026-11-05 11:08 [pm] 사이클 017 완료: 돌리기 왼쪽 '제외 포함' 체크박스(기본 해제·저장 안 함, 체크 시 제외 가게도 후보) (js/exclude.js·app.js, index.html, css, tests, README, screenshots/017) — DoD 4/4, npm test 93 pass
+- 2026-11-05 11:35 [codex] 사이클 018 구현 1차: 결과 카드 버튼을 🙅 제외하기로 변경·README 흐름도 동기화 (app.js·README 외 버전/기록) — npm test 93 pass, Chrome 360/400 라이트/다크 한 줄·카드 경계·확정 동작 PASS, screenshots/018 4개
+- 2026-11-05 11:35 [pm] 사이클 018 완료: 결과 카드 제외 버튼 문구 '🙅 제외하기' (js/app.js, README, screenshots/018) — DoD 3/3, npm test 93 pass
+- 2026-11-05 11:56 [codex] 사이클 019 구현 1차: 샘플 기반 무음 전체 화면 1순위 공개·등급별 차등·두 단계 건너뛰기와 500ms 닫기 보호 (reveal.js·reveal-plan.js·테스트 신규, app·index·css·README 외 버전/기록) — npm test 96 pass, Chrome 6등급·Esc·정리·기존 기능 회귀 PASS, screenshots/019 7개
+- 2026-11-05 12:00 [pm] 사이클 019 완료: 1순위 공개 연출 창(샘플 01 이식, 등급별 차등, 무음, 어두운 색, 터치로 공개→닫기) (js/reveal.js·reveal-plan.js·app.js, index.html, css, tests, README, screenshots/019) — DoD 4/4, npm test 96 pass
+- 2026-11-05 12:52 [codex] 사이클 020 구현 1차: 카드 안 세로 룰렛·1750ms부터 상위 등급 창 진입·샘플 합성 효과음 (sound.js 신규, animation·reveal·plan·app·css·tests·README 외 버전/기록) — npm test 96 pass, Chrome 6등급·실제 클릭 오디오/소리 차단·스킵/정지·회귀 PASS, screenshots/020 5개
+- 2026-11-05 12:58 [pm] 사이클 020 완료: 연출 나누기(카드 안 룰렛, 원석·미확인은 창 없이 이름 정지→뒤집기, 에메랄드 이상은 룰렛 소멸 시점부터 덮는 창) + 샘플 효과음(기본 켜짐) (js/sound.js 신규, animation·reveal·reveal-plan·app.js, css, tests, README, screenshots/020) — DoD 4/4, npm test 96 pass
+- 2026-11-05 13:09 [codex] 사이클 021 구현 1차: 안내15px·위치 정렬·5초 자동 닫기·등급별 보석·원석 계열 회전 중 소멸 뒤 물음표 (reveal·plan·animation·css·tests·README 외 버전/기록) — npm test 99 pass, Chrome 자동/수동 닫기·다음 회차 보호·3보석·3하위 등급 타이밍·회귀 PASS, screenshots/021 10개
+- 2026-11-05 13:15 [pm] 사이클 021 완료: 연출 다듬기(안내 15px·위로, 공개 5초 뒤 자동 닫기, 에메랄드·루비 보석 선화, 낮은 등급은 룰렛 페이드→?→뒤집기) (js/reveal.js·reveal-plan.js·animation.js, css, tests, README, screenshots/021) — DoD 6/6, npm test 99 pass
+- 2026-11-05 13:19 [codex] 사이클 022 구현 1차: 낮은 등급1700ms 페이드/2300ms 물음표·모든 후보 릴 포함·자동 닫기5→1 표시 (plan·animation·reveal·css·tests·README 외 버전/기록) — npm test 100 pass, Chrome 하위3흐름·후보1/2/5·카운트다운/재추첨/소리 PASS, screenshots/022 2개
+- 2026-11-05 13:40 [pm] 사이클 022 완료: 낮은 등급 페이드 1700ms로 당김(? 2.3초), 룰렛에 선택 가게 포함·'선택 중' 제거, 결과 보기 아래 '자동으로 닫히기 N초 전' (js/reveal.js·reveal-plan.js·animation.js, css, tests, README, screenshots/022) — DoD 6/6, npm test 100 pass
+- 2026-11-05 13:36 [codex] 사이클 023 구현 1차: 1순위 상위 등급 다시보기·창 안 룰렛부터 전체 재생·회차 메모리 보존 (app·reveal·plan·animation·css·tests·README 외 버전/기록) — npm test 103 pass, Chrome 3등급 실측·3회 반복·결과/포커스 보존·초기화/회귀 PASS, screenshots/023 6개
+- 2026-11-05 13:50 [pm] 사이클 023 완료: 1순위 연출 다시보기(에메랄드 이상 1순위 카드 오른쪽 아래 버튼, 창 안 룰렛부터 전체 재생, 결과 화면 불변) (js/app.js·reveal.js·reveal-plan.js·animation.js, css, tests, README, screenshots/023) — DoD 4/4, npm test 103 pass
+- 2026-11-05 14:00 [pm] 단위: v2.3 지정(APP_VERSION·README 배지), 릴리스 노트(v2.2 누락분 포함)·태그 스크립트 준비 — 사용자 요청, npm test 103 pass

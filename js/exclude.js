@@ -13,7 +13,8 @@ export function readExcluded(raw, now) {
 }
 
 /** 기존 조건의 후보에서 제외를 뺀다. 남는 후보가 없을 때만 원본으로 대체한다. */
-export function withoutExcluded(candidates, excluded, keyOf) {
+export function withoutExcluded(candidates, excluded, keyOf, { include = false } = {}) {
+  if (include) return { list: candidates, fallback: false };
   const left = candidates.filter((store) => !Object.hasOwn(excluded, keyOf(store)));
   const fallback = candidates.length > 0 && left.length === 0;
   return { list: fallback ? candidates : left, fallback };

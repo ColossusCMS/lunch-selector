@@ -137,8 +137,15 @@ h1 {
 }
 .chip:disabled { cursor: default; opacity: 0.6; }
 
+.spin-row { display: flex; align-items: center; gap: 12px; }
+.include-excluded { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; white-space: nowrap; font-size: .85rem; cursor: pointer; }
+.include-excluded input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); }
+.include-excluded:has(input:disabled) { opacity: .5; cursor: default; }
+.include-excluded input:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .spin {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
   padding: 14px;
   font-size: 1.1rem;
   font-weight: 700;
@@ -162,6 +169,12 @@ h1 {
 .spin-name { position: relative; display: grid; place-items: center; width: 74px; height: 74px; border: 3px double #b99e86; border-radius: 50%; font-size: 2rem; font-weight: 800; overflow-wrap: anywhere; max-width: 100%; max-height: 140px; overflow: auto; }
 .spinning .spin-name { width: 100%; height: auto; min-height: 74px; border: none; border-radius: 0; font-size: 1.25rem; }
 .back-hint { position: relative; margin-top: 8px; opacity: .75; font-size: .8rem; }
+.reeling .back-utensils, .reeling .spin-name, .reeling .back-hint { visibility: hidden; }
+.reeling.questioning .spin-name { visibility: visible; }
+.card-reel { position: absolute; inset: 25px 14px; overflow: hidden; color: var(--back-text); mask-image: linear-gradient(transparent, #000 35%, #000 65%, transparent); }
+.card-reel::after { content: ''; position: absolute; left: 0; right: 0; top: calc(50% - 22px); height: 44px; border-block: 1px solid currentColor; opacity: .2; pointer-events: none; }
+.card-reel-track { position: absolute; top: calc(50% - 22px); left: 0; right: 0; will-change: transform; }
+.card-reel-row { height: 44px; display: flex; align-items: center; justify-content: center; padding-inline: 4px; font-size: clamp(16px, 4.5vw, 22px); font-weight: 700; white-space: nowrap; overflow: hidden; }
 :root { --back-surface: #fffaf3; --back-text: #5b4636; }
 :root[data-theme='dark'] { --back-surface: #2a2420; --back-text: #e9d8c6; }
 @media (prefers-color-scheme: dark) {
@@ -416,3 +429,93 @@ h1 {
 .exclude-btn { position: relative; display: block; flex-shrink: 0; margin: 6px auto 0; padding: 2px 10px; border: 1px solid var(--border); border-radius: 999px; background: transparent; color: var(--muted); font: inherit; font-size: .72rem; cursor: pointer; }
 .exclude-btn:disabled { opacity: .6; cursor: default; }
 .exclude-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.replay-btn { position:absolute; right:8px; bottom:8px; z-index:4; padding:2px 8px; border:1px solid var(--border); border-radius:999px; background:transparent; color:var(--muted); font:inherit; font-size:.72rem; cursor:pointer; }
+.replay-btn:disabled { opacity:.6; cursor:default; }
+.replay-btn:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+@media(prefers-reduced-motion:reduce) { .replay-btn { display:none; } }
+
+/* 다시보기에서는 샘플의 룰렛을 어두운 창 안에서 처음부터 재생한다. */
+.rv-roulette { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; z-index:3; }
+.rv-reel-caption { position:absolute; top:calc(50% - 154px); font:10px ui-monospace,monospace; color:#849591; letter-spacing:.24em; }
+.rv-reel-window { position:relative; width:calc(100% - 48px); height:210px; overflow:hidden; mask-image:linear-gradient(transparent,#000 35%,#000 65%,transparent); }
+.rv-reel-track { position:absolute; top:77px; left:0; width:100%; will-change:transform; }
+.rv-reel-row { height:56px; display:flex; align-items:center; justify-content:center; text-align:center; font-size:clamp(19px,3vw,33px); font-weight:650; letter-spacing:-.045em; white-space:nowrap; overflow:hidden; color:#a0abaa; }
+.rv-brackets { position:absolute; top:calc(50% - 29px); height:58px; width:calc(100% - 65px); max-width:530px; border-block:1px solid #8daca72b; pointer-events:none; }
+.rv-brackets::before,.rv-brackets::after { content:''; position:absolute; top:-1px; bottom:-1px; width:9px; border-block:1px solid #9dbdb0; }
+.rv-brackets::before { left:0; border-left:1px solid #9dbdb0; }
+.rv-brackets::after { right:0; border-right:1px solid #9dbdb0; }
+
+/* 1순위 공개 연출 — 샘플 무대 */
+.rv-stage { --accent:#b3ddff; --accent-rgb:179,221,255; --rate:1; position:relative; height:570px; overflow:hidden; isolation:isolate; perspective:1000px; background:radial-gradient(ellipse at 50% 85%,#18232970,transparent 65%),#080b0e; }
+.rv-stage::before { content:""; position:absolute; inset:0; pointer-events:none; z-index:6; opacity:.13; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Cpath fill='%23fff' opacity='.2' filter='url(%23n)' d='M0 0h180v180H0z'/%3E%3C/svg%3E"); }
+.rv-stage::after { content:""; position:absolute; inset:0; z-index:5; pointer-events:none; box-shadow:inset 0 0 100px 35px #02040560; }
+.rv-stars { position:absolute; inset:0; opacity:.4; background-image:radial-gradient(circle at 12% 25%,#b8c6ca 0 1px,transparent 1.5px),radial-gradient(circle at 82% 18%,#b8c6ca 0 1px,transparent 1.5px),radial-gradient(circle at 64% 80%,#b8c6ca 0 1px,transparent 1.5px),radial-gradient(circle at 26% 74%,#b8c6ca 0 1px,transparent 1.5px),radial-gradient(circle at 90% 70%,#b8c6ca 0 1px,transparent 1.5px); background-size:310px 240px; }
+.rv-grid { position:absolute; width:150%; height:440px; left:-25%; bottom:-290px; transform:rotateX(65deg); background:linear-gradient(#7b929a10 1px,transparent 1px),linear-gradient(90deg,#7b929a10 1px,transparent 1px); background-size:48px 48px; mask-image:radial-gradient(ellipse,#000,transparent 65%); }
+.rv-center-guide { position:absolute; width:360px; height:360px; border:1px solid #9eb9c511; border-radius:50%; left:50%; top:49%; transform:translate(-50%,-50%); }
+.rv-center-guide::before { content:""; position:absolute; inset:20px; border:1px dashed #a5c2cd12; border-radius:50%; }
+.rv-ambient { position:absolute; inset:0; opacity:0; transition:opacity 1s; background:radial-gradient(ellipse at center,rgba(var(--accent-rgb),.13),transparent 64%); }
+.rv-stage[data-phase="charge"] .rv-ambient,.rv-stage[data-phase="category"] .rv-ambient,.rv-stage[data-phase="grade"] .rv-ambient,.rv-stage[data-phase="reveal"] .rv-ambient,.rv-stage[data-phase="result"] .rv-ambient { opacity:1; }
+.rv-beam { position:absolute; width:2px; height:110%; left:50%; top:-5%; background:linear-gradient(transparent,var(--accent),transparent); box-shadow:0 0 25px 6px rgba(var(--accent-rgb),.3); opacity:0; transform:scaleY(.02); }
+.rv-rings { position:absolute; width:310px; height:310px; left:50%; top:49%; transform:translate(-50%,-50%) rotate(0deg); opacity:0; border:1px solid rgba(var(--accent-rgb),.2); border-radius:50%; box-shadow:0 0 60px rgba(var(--accent-rgb),.04),inset 0 0 60px rgba(var(--accent-rgb),.04); transition:opacity .5s; }
+.rv-rings::before,.rv-rings::after { content:""; position:absolute; inset:22px; border:1px solid transparent; border-top-color:var(--accent); border-bottom-color:var(--accent); border-radius:50%; opacity:.45; }
+.rv-rings::after { inset:-30px; border-top-color:transparent; border-bottom-color:transparent; border-left-color:var(--accent); border-right-color:var(--accent); opacity:.15; }
+.rv-stage[data-phase="charge"] .rv-rings,.rv-stage[data-phase="category"] .rv-rings,.rv-stage[data-phase="grade"] .rv-rings { opacity:1; animation:rv-orbit calc(14s * var(--rate)) linear infinite; }
+.rv-stage[data-phase="result"] .rv-rings { opacity:.32; width:430px; height:430px; }
+@keyframes rv-orbit { to { transform:translate(-50%,-50%) rotate(360deg); } }
+.rv-stage canvas { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:2; }
+.rv-cue { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column; z-index:3; pointer-events:none; }
+.rv-cue-kicker { font:10px ui-monospace,monospace; letter-spacing:.32em; color:var(--accent); margin:0 0 25px; }
+.rv-cue-main { font-size:clamp(54px,9vw,102px); font-weight:700; letter-spacing:-.07em; color:#f3f7ee; text-shadow:0 0 60px rgba(var(--accent-rgb),.35); margin:0; line-height:1.1; }
+.rv-cue-rule { height:1px; width:75px; margin-top:28px; background:linear-gradient(90deg,transparent,var(--accent),transparent); }
+.rv-charge-core { position:absolute; left:50%; top:49%; width:7px; height:7px; background:#efffff; transform:translate(-50%,-50%) rotate(45deg); box-shadow:0 0 30px 8px var(--accent),0 0 100px 20px rgba(var(--accent-rgb),.4); opacity:0; }
+.rv-grade-symbol { width:114px; height:114px; margin-bottom:20px; color:var(--accent); filter:drop-shadow(0 0 20px rgba(var(--accent-rgb),.4)); }
+.rv-grade-symbol svg { width:100%; height:100%; }
+.rv-grade-en { font:11px ui-monospace,monospace; letter-spacing:.48em; color:var(--accent); margin:0 0 12px; padding-left:.48em; }
+.rv-grade-name { font-size:clamp(40px,6vw,64px); font-weight:650; letter-spacing:-.06em; margin:0; }
+.rv-grade-whisper { color:#8fa19b; font-size:11px; margin-top:19px; letter-spacing:.04em; }
+.rv-flash { position:absolute; inset:0; background:radial-gradient(ellipse,#fff,#efffff 28%,rgba(var(--accent-rgb),.2) 75%); z-index:9; pointer-events:none; opacity:0; mix-blend-mode:screen; }
+.rv-result-wrap { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; z-index:4; padding:63px 34px 54px; }
+.rv-result-card { position:relative; width:330px; min-height:350px; padding:30px 27px; text-align:center; display:flex; align-items:center; justify-content:center; flex-direction:column; border:1px solid rgba(var(--accent-rgb),.6); border-radius:8px; background:linear-gradient(145deg,rgba(var(--accent-rgb),.14),#0a1114e8 62%); box-shadow:0 0 0 5px rgba(var(--accent-rgb),.025),0 24px 90px #0007,0 0 80px rgba(var(--accent-rgb),.13); transform-style:preserve-3d; }
+.rv-result-card::before { content:""; position:absolute; inset:7px; border:1px solid rgba(var(--accent-rgb),.13); border-radius:3px; pointer-events:none; }
+.rv-result-card::after { content:""; position:absolute; inset:0; background:linear-gradient(115deg,transparent 25%,rgba(var(--accent-rgb),.09) 48%,transparent 70%); border-radius:inherit; pointer-events:none; }
+.rv-card-top { position:absolute; top:23px; left:25px; right:25px; display:flex; align-items:center; justify-content:space-between; font:8px ui-monospace,monospace; letter-spacing:.15em; color:var(--accent); }
+.rv-card-top span:last-child { color:#71827f; }
+.rv-card-gem { width:58px; height:58px; color:var(--accent); margin:8px 0 19px; filter:drop-shadow(0 0 16px rgba(var(--accent-rgb),.4)); }
+.rv-card-gem svg { width:100%; height:100%; }
+.rv-result-label { font-size:9px; color:#91a49c; letter-spacing:.2em; margin:0 0 15px; }
+.rv-result-name { font-size:clamp(22px,3vw,32px); line-height:1.3; letter-spacing:-.05em; margin:0; font-weight:650; overflow-wrap:anywhere; width:100%; }
+.rv-card-divider { width:32px; height:1px; background:rgba(var(--accent-rgb),.45); margin:21px 0 17px; }
+.rv-result-category { color:#aabdb3; font-size:12px; margin:0; }
+.rv-card-bottom { margin-top:16px; color:var(--accent); font-size:11px; letter-spacing:.1em; }
+.rv-stage[data-tier="diamond"] .rv-result-card { background:linear-gradient(140deg,#b9eaff1e,transparent 40%),linear-gradient(230deg,#dbb8ff20,transparent 60%),#0b111b; }
+.rv-stage[data-tier="ruby"] .rv-result-card { background:radial-gradient(ellipse at top,#ed496d22,transparent 80%),#140b10; }
+
+/* 어두운 연출 창은 앱 테마와 분리한다. */
+.reveal-dialog { position:fixed; inset:0; margin:0; padding:0; border:0; width:100vw; max-width:none; height:100dvh; max-height:none; overflow:hidden; background:#080b0e; color:#f3f7ee; color-scheme:dark; }
+.reveal-dialog::backdrop { background:transparent; }
+.reveal-dialog .rv-stage { width:100%; height:100%; margin:0; border:0; }
+.reveal-dialog [hidden] { display:none !important; }
+/* 높이가 다른 문구/버튼의 중심을 맞추면서 안내 글자를 이전보다 약32px 올린다. */
+.rv-footer { position:absolute; bottom:calc(max(24px,env(safe-area-inset-bottom)) + 16px); left:20px; right:20px; height:50px; display:grid; place-items:center; text-align:center; z-index:10; }
+.rv-help { color:#b8c8c2; font-size:15px; font-weight:400; }
+.rv-close { color:#e8f0e8; border:1px solid #8ca49c66; background:#101b1e; border-radius:8px; padding:13px 30px; font:inherit; cursor:pointer; }
+.rv-close:focus-visible { outline:2px solid #bcdeff; outline-offset:4px; }
+.rv-countdown { position:absolute; top:calc(100% + 6px); left:0; right:0; color:#b8c8c2; font-size:13px; line-height:18px; }
+.rv-cue { padding:25px; text-align:center; }
+.rv-cue-main,.rv-grade-name,.rv-grade-whisper { overflow-wrap:anywhere; max-width:100%; }
+.rv-result-wrap { overflow:auto; padding-bottom:100px; }
+.rv-result-card { flex-shrink:0; max-width:100%; }
+@media(max-width:760px) {
+ .rv-result-wrap { padding:50px 28px 100px; }
+ .rv-result-card { width:290px; min-height:330px; padding:40px 24px 24px; }
+ .rv-center-guide { width:290px; height:290px; }
+ .rv-cue-main { font-size:68px; }
+}
+@media(max-height:580px) {
+ .rv-result-card { min-height:0; padding:38px 22px 20px; }
+ .rv-card-gem { width:32px; height:32px; margin:0 0 8px; }
+ .rv-result-wrap { padding:16px 28px 140px; }
+ .rv-card-divider { margin:10px 0; }
+ .rv-grade-symbol { width:65px; height:65px; margin-bottom:10px; }
+ .rv-grade-whisper { margin-top:10px; }
+}

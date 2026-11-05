@@ -1,15 +1,18 @@
 // 화면 초기화와 이벤트 처리.
 
-import { APP_VERSION, ABOUT_URL, modes, initialMode, dataUrl, editUrl, KAKAO_MAP_KEY, RATING, ratingEnabled } from './config.js?v=202611041544';
-import { loadStores, fetchCsvRows, createRequestCounter } from './data.js?v=202611041544';
-import { listRegions, listGroups, listCategories, filterCandidates, closedToday, pickTop } from './select.js?v=202611041544';
-import { spinReel, burstConfetti, reducedMotion } from './animation.js?v=202611041544';
-import { createMap, kakaoLink } from './map.js?v=202611041544';
-import { THEME_KEY, THEMES, parseTheme, applyTheme } from './theme.js?v=202611041544';
+import { APP_VERSION, ABOUT_URL, modes, initialMode, dataUrl, editUrl, KAKAO_MAP_KEY, RATING, ratingEnabled } from './config.js?v=202611051333';
+import { loadStores, fetchCsvRows, createRequestCounter } from './data.js?v=202611051333';
+import { listRegions, listGroups, listCategories, filterCandidates, closedToday, pickTop } from './select.js?v=202611051333';
+import { burstConfetti, reducedMotion } from './animation.js?v=202611051333';
+import { playFirstPick, showFirstPick } from './reveal.js?v=202611051333';
+import { canReplay } from './reveal-plan.js?v=202611051333';
+import { createSound } from './sound.js?v=202611051333';
+import { createMap, kakaoLink } from './map.js?v=202611051333';
+import { THEME_KEY, THEMES, parseTheme, applyTheme } from './theme.js?v=202611051333';
 import { PICK_KEY, ratingKey, aggregateRatings, cardTier, formatStatLine, parsePick, pickStatus,
-  buildRatingBody, applySendResults, dropIfSame, starLabel, ratingModeLabel } from './rating.js?v=202611041544';
+  buildRatingBody, applySendResults, dropIfSame, starLabel, ratingModeLabel } from './rating.js?v=202611051333';
 
-import { EXCLUDE_KEY, EXCLUDE_DAYS, readExcluded, withoutExcluded } from './exclude.js?v=202611041544';
+import { EXCLUDE_KEY, EXCLUDE_DAYS, readExcluded, withoutExcluded } from './exclude.js?v=202611051333';
 
 const GROUP_KEY = 'lunch-selector:groups';
 const REGION_KEY = 'lunch-selector:region';
@@ -34,8 +37,10 @@ const els = {
   rank1: $('rank1'),
   ratingDialog: $('rating-dialog'),
   excludeDialog: $('exclude-dialog'),
+  revealDialog: $('reveal-dialog'),
   announce: $('announce'),
   spin: $('spin'),
+  includeExcluded: $('include-excluded'),
   rank2: $('rank2'),
   rank3: $('rank3'),
   map: $('map'),
@@ -47,9 +52,9 @@ const els = {
 };
 
 const state = {
-  /** @type {import('./config.js?v=202611041544').Mode} */
+  /** @type {import('./config.js?v=202611051333').Mode} */
   mode: null,
-  /** @type {import('./stores.js?v=202611041544').Store[]} */
+  /** @type {import('./stores.js?v=202611051333').Store[]} */
   stores: [],
   /** @type {string | null} null이면 지역 미선택, ''는 하위 호환 지역 */
   region: null,
@@ -57,6 +62,8 @@ const state = {
   group: null,
   categories: new Set(),
   spinning: false,
+  replaying: false,
+  replay: null,
   ratings: null,
   /** 결과를 지울 때마다 늘어난다. 늦게 끝난 주소 조회가 지운 화면에 지도를 띄우지 않게 한다. */
   round: 0,
@@ -89,6 +96,7 @@ function setMessage(text) {
 }
 
 function resetResult() {
+  state.replay = null;
   state.round += 1;
   els.spinName.textContent = '?';
   els.spinName.classList.remove('done');
@@ -174,7 +182,7 @@ function fillCard(el, rank, store) {
   });
   inner.append(link);
   const exclude = Object.assign(document.createElement('button'), {
-    type: 'button', className: 'exclude-btn', textContent: '🙅 제외',
+    type: 'button', className: 'exclude-btn', textContent: '🙅 제외하기',
   });
   const key = excludeKey(store);
   exclude.setAttribute('aria-label', `${store.name} ${EXCLUDE_DAYS}일 동안 제외`);
@@ -453,6 +461,7 @@ function selectRegion(region) {
     renderClosed();
   }
   els.spin.disabled = region === null;
+  els.includeExcluded.disabled = els.spin.disabled;
 }
 
 function renderGroups() {
@@ -492,6 +501,7 @@ function renderClosed() {
 
 function setControlsDisabled(disabled) {
   els.spin.disabled = disabled || state.region === null;
+  els.includeExcluded.disabled = els.spin.disabled;
   for (const chip of document.querySelectorAll('.chip')) chip.disabled = disabled;
 }
 
@@ -506,8 +516,8 @@ function selectGroup(group) {
   resetResult();
 }
 
-/** 이름 회전이 끝나면 ?로 멈춘 뒤 2·3순위, 마지막으로 1순위를 공개한다. */
-async function present(picks, candidates) {
+/** 카드 안 룰렛과 상위 등급 연출 뒤 2·3순위와 1순위를 공개한다. */
+async function present(picks, candidates, sound) {
   const [first, second, third] = picks;
   const calm = reducedMotion();
   const round = state.round;
@@ -527,21 +537,27 @@ async function present(picks, candidates) {
       el.classList.add('show');
     }
   };
-  els.backHint.hidden = true;
-  if (calm) {
-    await revealRanks();
-  } else {
-    els.cardBack.classList.add('spinning');
-    // 최종 결과 이름 대신 ?에서 멈춰 1순위가 앞면 공개 전에 드러나지 않게 한다.
-    await spinReel(els.spinName, candidates.map((s) => s.name), '?', 2000);
+  let cleanupReel = () => {};
+  try {
+    els.backHint.hidden = true;
+    if (calm) {
+      await revealRanks();
+    } else {
+      const tier = els.rank1.dataset.tier;
+      cleanupReel = await playFirstPick(els.revealDialog, els.cardBack, {
+        name: first.name, category: first.categories.join(' · '), tierId: tier,
+        names: candidates.map((store) => store.name), sound,
+      });
+      if (round !== state.round) return;
+      await revealRanks();
+      await wait(120);
+    }
     if (round !== state.round) return;
-    els.cardBack.classList.remove('spinning');
-    await revealRanks();
-    await wait(120);
+    els.cardFlip.classList.add('revealed');
+    if (!calm) await wait(280);
+  } finally {
+    cleanupReel();
   }
-  if (round !== state.round) return;
-  els.cardFlip.classList.add('revealed');
-  if (!calm) await wait(280);
   if (round !== state.round) return;
   els.rank1.removeAttribute('aria-hidden');
   els.rank1.inert = false;
@@ -560,10 +576,35 @@ async function present(picks, candidates) {
   if (!calm) await wait(320);
   if (round !== state.round) return;
   if (located) showOnMap(picks, located, round);
+  const tierId = els.rank1.dataset.tier;
+  if (canReplay(tierId, calm)) {
+    state.replay = { name: first.name, category: first.categories.join(' · '), tierId,
+      names: candidates.map(store => store.name) };
+  }
+}
+
+function renderReplay() {
+  if (!state.replay || !canReplay(state.replay.tierId, reducedMotion())) return;
+  const button = Object.assign(document.createElement('button'), {
+    type: 'button', className: 'replay-btn', textContent: '↻ 연출 다시보기',
+  });
+  button.setAttribute('aria-label', `1순위 ${state.replay.name} 연출 다시보기`);
+  button.addEventListener('click', async () => {
+    if (state.spinning || state.replaying || !state.replay || reducedMotion()) return;
+    const sound = createSound();
+    state.replaying = true; button.disabled = true; setControlsDisabled(true);
+    try {
+      await showFirstPick(els.revealDialog, { ...state.replay, replay: true, sound });
+    } finally {
+      sound.stopSound(); state.replaying = false; setControlsDisabled(state.spinning);
+      if (button.isConnected) { button.disabled = false; button.focus({ preventScroll: true }); }
+    }
+  });
+  els.rank1.append(button);
 }
 
 async function spin() {
-  if (state.spinning || state.region === null) return;
+  if (state.spinning || state.replaying || state.region === null) return;
   resetResult();
   renderClosed(); // 페이지를 연 채 날짜가 바뀌었을 수 있다
   const candidates = filterCandidates(state.stores, {
@@ -576,16 +617,20 @@ async function spin() {
     setMessage('조건에 맞는 가게가 없어요');
     return;
   }
-  const pool = withoutExcluded(candidates, loadExcluded(), excludeKey);
+  const pool = withoutExcluded(candidates, loadExcluded(), excludeKey, { include: els.includeExcluded.checked });
+  // 최초 await 전에 클릭의 사용자 동작 안에서 소리를 활성화한다.
+  const sound = reducedMotion() ? null : createSound();
   state.spinning = true;
   setControlsDisabled(true);
   try {
-    await present(pickTop(pool.list), pool.list);
+    await present(pickTop(pool.list), pool.list, sound);
     if (pool.fallback) setMessage('제외한 가게뿐이라 이번엔 전체에서 뽑았어요');
   } finally {
+    sound?.stopSound();
     state.spinning = false;
     setControlsDisabled(false);
     els.spin.textContent = '🎰 다시 돌리기';
+    renderReplay();
   }
 }
 
@@ -645,6 +690,7 @@ async function load() {
   setMessage('불러오는 중...');
   els.retry.hidden = true;
   els.spin.disabled = true;
+  els.includeExcluded.disabled = true;
   let stores;
   try {
     stores = storeCache.get(mode.id) ?? (await loadStores(dataUrl(mode)));
@@ -710,6 +756,7 @@ els.theme.addEventListener('click', (event) => {
 });
 
 els.spin.addEventListener('click', spin);
+els.includeExcluded.checked = false;
 els.retry.addEventListener('click', load);
 
 els.appVersion.textContent = APP_VERSION;
@@ -726,6 +773,7 @@ const first = initialMode(modes(), savedMode);
 if (first === null) {
   setMessage('설정된 메뉴가 없어요');
   els.spin.disabled = true;
+  els.includeExcluded.disabled = true;
 } else {
   selectMode(first);
 }

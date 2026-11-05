@@ -54,3 +54,23 @@ test('상속 속성은 제외 기록으로 취급하지 않는다', () => {
   const stores = [{ name: 'constructor' }, { name: 'toString' }];
   assert.deepEqual(withoutExcluded(stores, {}, (s) => s.name).list, stores);
 });
+
+test('포함 옵션은 일부·전체 제외와 빈 후보 모두 원본 반환, 대체 안내 없음', () => {
+  const stores = [{ name: 'A' }, { name: 'B' }];
+  for (const excluded of [{ A: now }, { A: now, B: now }]) {
+    const result = withoutExcluded(stores, excluded, (s) => s.name, { include: true });
+    assert.equal(result.list, stores);
+    assert.equal(result.fallback, false);
+    assert.deepEqual(stores, [{ name: 'A' }, { name: 'B' }]);
+    assert.equal(excluded.A, now);
+  }
+  assert.deepEqual(withoutExcluded([], {}, (s) => s.name, { include: true }), { list: [], fallback: false });
+});
+
+test('포함 옵션 false는 기존 제외·전부 제외 대체 동작 유지', () => {
+  const stores = [{ name: 'A' }, { name: 'B' }];
+  for (const excluded of [{ A: now }, { A: now, B: now }]) {
+    assert.deepEqual(withoutExcluded(stores, excluded, (s) => s.name, { include: false }),
+      withoutExcluded(stores, excluded, (s) => s.name));
+  }
+});

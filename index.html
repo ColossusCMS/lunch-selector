@@ -12,7 +12,7 @@
       if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
     } catch { /* 저장소를 못 쓰면 시스템 설정을 따른다 */ }
   </script>
-  <link rel="stylesheet" href="css/style.css?v=202611041544">
+  <link rel="stylesheet" href="css/style.css?v=202611051333">
 </head>
 <body>
   <main class="app">
@@ -50,7 +50,10 @@
       </div>
     </section>
 
-    <button id="spin" class="spin" type="button" disabled>🎰 돌리기</button>
+    <div class="spin-row">
+      <label class="include-excluded"><input id="include-excluded" type="checkbox" aria-label="제외한 가게도 포함해서 돌리기" autocomplete="off" disabled> 제외 포함</label>
+      <button id="spin" class="spin" type="button" disabled>🎰 돌리기</button>
+    </div>
 
     <div class="ranks">
       <article id="rank2" class="rank" hidden></article>
@@ -73,6 +76,7 @@
   </main>
   <dialog id="rating-dialog" class="rating-dialog" aria-labelledby="rating-title"></dialog>
   <dialog id="exclude-dialog" class="rating-dialog" aria-labelledby="exclude-title"></dialog>
+  <dialog id="reveal-dialog" class="reveal-dialog" aria-label="1순위 공개 연출" tabindex="-1"></dialog>
   <script>
     // 모듈 자체를 불러오지 못해도 오류 안내와 새로 불러오기는 동작한다.
     (function () {
@@ -92,6 +96,6 @@
       });
     })();
   </script>
-  <script type="module" src="js/app.js?v=202611041544" onerror="window.__lunchStartFailed()"></script>
+  <script type="module" src="js/app.js?v=202611051333" onerror="window.__lunchStartFailed()"></script>
 </body>
 </html>
