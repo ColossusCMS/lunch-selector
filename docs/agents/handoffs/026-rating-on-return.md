@@ -54,3 +54,4 @@
 - `npm test` 113 pass / 0 fail, `git diff --check` 통과, bump 재실행 시 변경 0(`419ee43b2143`).
 - 코드 검토: `shouldCheckRatings`·`shouldRefreshRatings`(`js/rating.js`)가 순수 함수로 분리돼 테스트됨. `app.js`는 `visibilitychange`(visible)·`pageshow`(persisted)에서 `initRatings` 재사용, 세 dialog open·spinning·replaying이면 건너뜀. 평점은 마지막 성공 시각 기준 5분, 진행 중 요청 공유, 실패 시 기존 값 유지. 가게 목록 재요청 없음(지시대로).
 - R-2·R-3은 코덱스의 Chrome 이벤트 주입 검증. 실제 휴대폰 탭 전환은 배포 후 사용자가 같은 방법으로 다시 확인할 것.
+- 실기기 확인(2026-11-06 사용자, 배포본 `c51cbc3`): 30분 지나 탭으로 돌아오자 평가 창 정상 표시. H-5 종료.

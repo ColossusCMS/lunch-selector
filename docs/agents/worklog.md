@@ -62,3 +62,4 @@
 - 2026-11-05 18:34 [pm] 사이클 025 완료: 정비 1차 H-7 옛 버전 표시 제거·H-3/H-4 SETUP 정정(웹 게시 기본, 공유는 편집자 지정)·H-6 SDK 재시도 정리·H-1 같은 지역+가게명 병합·H-2 콘텐츠 해시 버전(bump 누락 시 테스트 실패) (index.html, js/map.js·stores.js, scripts/, tests, docs/SETUP.md, README) — DoD 6/6, npm test 111 pass. H-5 대기
 - 2026-11-05 19:02 [codex] 사이클 026 구현 1차: visible/persisted pageshow 평가 재확인·평점5분 성공 캐시/요청 공유·busy/dialog 건너뛰기 (app·rating·tests·README 외 버전/기록) — npm test 113 pass, Chrome 29/31분·만료·각busy/창·요청1→1→2·실패보존/지도 회귀 PASS, hash 419ee43b2143
 - 2026-11-05 19:02 [pm] 사이클 026 완료: 탭 복귀(visibilitychange·bfcache pageshow) 시 평가 창 재확인, 돌리기·연출·창 열림 중 건너뜀, 평점 CSV 5분 간격 재읽기 (js/app.js·rating.js, tests, README) — DoD 5/5, npm test 113 pass. 실기기 재확인은 배포 후
+- 2026-11-06 10:24 [pm] 026 실기기 확인: 사용자 휴대폰에서 탭 복귀 후 평가 창 정상 표시 — H-5 종료, 정비 H-1~H-7 전부 완료
