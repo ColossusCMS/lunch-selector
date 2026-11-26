@@ -13,8 +13,8 @@
 ![No Backend](https://img.shields.io/badge/Backend-없음-2f9e44)
 ![No Build](https://img.shields.io/badge/Build-없음-2f9e44)
 ![Dependencies](https://img.shields.io/badge/dependencies-0-2f9e44)
-![Tests](https://img.shields.io/badge/tests-113_passing-2f9e44)
-![Version](https://img.shields.io/badge/version-v2.4-e8590c)
+![Tests](https://img.shields.io/badge/tests-177_passing-2f9e44)
+![Version](https://img.shields.io/badge/version-v2.5-e8590c)
 
 <img src="docs/images/demo.gif" alt="카드 안 룰렛이 상위 등급 공개 창으로 이어지고, 업종·등급 단서와 1순위 결과를 본 뒤 결과 카드와 지도를 보여주는 모습" width="320">
 
@@ -44,6 +44,7 @@
 | 📅 **정기휴무 자동 제외** | 시트에 `월`, `토,일`, `토요일 일요일`처럼 편하게 적어두면 오늘 쉬는 곳은 후보에서 빠지고 화면 아래에 따로 알려줘요. |
 | 👥 **지역 · 그룹 · 업종 필터** | 먼저 지역을 고르고 3층/4층처럼 그룹을 고르거나 [전체]로 볼 수 있고, 업종은 여러 개 골라 OR로 걸러요. 한 가게가 여러 그룹·업종에 속할 수 있어요. |
 | 🤖 **AI 메뉴 추천** | 추천 서버를 연결하면 점심시간 날씨에 어울리는 업종 필터를 자동으로 켤 수 있어요. |
+| 📣 **공지 · AI 추천 피드백** | 접속하면 시트에서 관리하는 공지가 뜨고, 화면 아래에서 AI 추천에 대한 별점과 의견을 보낼 수 있어요. |
 | 🗺️ **지도에 1·2·3순위 표시** | 주소를 좌표로 바꿔 순위 핀을 찍고, 세 곳이 한 화면에 들어오게 맞춰요. 카드마다 카카오맵 바로가기가 있어 휴대폰에서 바로 길찾기로 이어져요. |
 | ☕ **점심 ↔ 카페 전환** | 같은 양식의 시트 탭만 하나 더 만들면, 버튼 하나로 "오늘 카페 어디 가지?"가 돼요. |
 | ✏️ **누구나 고치는 목록** | 가게 목록은 구글 시트예요. 개발자가 아니어도 시트만 고치면 몇 분 안에 반영돼요. |
@@ -255,7 +256,7 @@ lunch-selector/
 │  ├─ map.js           # 지오코딩 캐시 · 지도 핀 · 카카오맵 링크
 │  ├─ theme.js         # 시스템 · 라이트 · 다크 테마
 │  └─ app.js           # 화면 상태와 이벤트
-├─ tests/              # node:test 단위 테스트 144개
+├─ tests/              # node:test 단위 테스트 177개
 └─ docs/SETUP.md       # 설치·운영 가이드
 ```
 

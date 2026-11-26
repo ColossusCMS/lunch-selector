@@ -1,4 +1,5 @@
 import { runClaude } from './classifier.js';
+import { createPickJobs } from './pick-jobs.js';
 import { evaluateWeather } from './rules.js';
 import { createSheetCache } from './sheet.js';
 import { buildPrompt, findUntagged, validateOutput } from './tags.js';
@@ -14,10 +15,19 @@ function send(response, status, body) {
 
 const failure = (reason) => ({ ok: false, reason });
 
-export function createHandler({
+export const createHandler = (deps) => createApp(deps).handler;
+
+export function createApp({
   config, tagStore, now = Date.now, fetchFn = fetch, classify = runClaude, logger = console,
 }) {
-  const { allowedOrigins, regions, lunchHours, sheetCsvUrl, classifier } = config;
+  const { allowedOrigins, regions, lunchHours, sheetCsvUrl, classifier, recommender = 'claude' } = config;
+  let cliQueue = Promise.resolve();
+  function enqueue(task) {
+    const run = cliQueue.then(task);
+    cliQueue = run.catch(() => {});
+    return run;
+  }
+  const picks = createPickJobs({ recommender, now, enqueue, classify, tagStore });
   let knownCategories = new Set();
   let lastClassifyError = null;
   let failedAt = -Infinity;
@@ -60,20 +70,22 @@ export function createHandler({
         return false;
       });
       if (!eligible.length) return;
-      const output = await classify(buildPrompt(eligible));
-      let tags;
-      try {
-        tags = validateOutput(output, eligible);
-      } catch {
-        throw new Error('분류 결과 JSON 형식 오류');
-      }
-      if (!Object.keys(tags).length) throw new Error('유효한 업종 분류 결과 없음');
-      const failedTime = now();
-      for (const category of findUntagged(eligible, tags)) {
-        categoryFailures.set(category, failedTime);
-      }
-      await tagStore.merge(tags);
-      lastClassifyError = null;
+      await enqueue(async () => {
+        const output = await classify(buildPrompt(eligible));
+        let tags;
+        try {
+          tags = validateOutput(output, eligible);
+        } catch {
+          throw new Error('분류 결과 JSON 형식 오류');
+        }
+        if (!Object.keys(tags).length) throw new Error('유효한 업종 분류 결과 없음');
+        const failedTime = now();
+        for (const category of findUntagged(eligible, tags)) {
+          categoryFailures.set(category, failedTime);
+        }
+        await tagStore.merge(tags);
+        lastClassifyError = null;
+      });
     } catch (error) {
       lastClassifyError = String(error.message ?? error).slice(0, 120);
       failedAt = now();
@@ -91,7 +103,33 @@ export function createHandler({
     },
   });
 
-  return async (request, response) => {
+  async function recommend(region) {
+    const tagsAtRequest = await tagStore.read();
+    const [weatherResult, sheetResult] = await Promise.allSettled([getWeather(region), getSheet()]);
+    if (weatherResult.status === 'rejected') return failure('weather-unavailable');
+    if (sheetResult.status === 'rejected') return failure('sheet-unavailable');
+
+    const { value, receivedAt } = weatherResult.value;
+    const { weather, message, tags } = evaluateWeather(value);
+    const regional = sheetResult.value.value.byRegion.get(region) ?? new Set();
+    const pick = picks.choose(region, weather, regional);
+    const categories = pick?.categories ?? [...regional]
+      .filter((category) => Object.hasOwn(tagsAtRequest, category)
+        && tagsAtRequest[category].some((tag) => tags.has(tag)));
+    return {
+      ok: true, region, basis: ['weather'], source: pick ? 'ai' : 'rule', weather,
+      message: pick?.message ?? message, categories: categories.sort((a, b) => a.localeCompare(b, 'ko')),
+      updatedAt: new Date(receivedAt).toISOString(),
+    };
+  }
+
+  function warmUp() {
+    if (recommender === 'claude') {
+      for (const region of Object.keys(regions)) void recommend(region).catch(() => {});
+    }
+  }
+
+  async function handler(request, response) {
     response.setHeader('Content-Type', 'application/json; charset=utf-8');
     response.setHeader('Cache-Control', 'no-store');
     const origin = request.headers.origin;
@@ -115,6 +153,7 @@ export function createHandler({
         const untagged = findUntagged(knownCategories, await tagStore.read()).length;
         return send(response, 200, {
           ok: true, untagged, lastClassifyError, classifier, tagsFileError: tagStore.fileError ?? null,
+          ...picks.health(),
         });
       }
       if (url.pathname !== '/recommend') return send(response, 404, failure('not-found'));
@@ -125,25 +164,13 @@ export function createHandler({
         return send(response, 404, failure('unknown-region'));
       }
 
-      const tagsAtRequest = await tagStore.read();
-      const [weatherResult, sheetResult] = await Promise.allSettled([getWeather(region), getSheet()]);
-      if (weatherResult.status === 'rejected') return send(response, 503, failure('weather-unavailable'));
-      if (sheetResult.status === 'rejected') return send(response, 503, failure('sheet-unavailable'));
-
-      const { value, receivedAt } = weatherResult.value;
-      const { weather, message, tags } = evaluateWeather(value);
-      const regional = sheetResult.value.value.byRegion.get(region) ?? [];
-      const categories = [...regional]
-        .filter((category) => Object.hasOwn(tagsAtRequest, category)
-          && tagsAtRequest[category].some((tag) => tags.has(tag)))
-        .sort((a, b) => a.localeCompare(b, 'ko'));
-      return send(response, 200, {
-        ok: true, region, basis: ['weather'], weather, message, categories,
-        updatedAt: new Date(receivedAt).toISOString(),
-      });
+      const result = await recommend(region);
+      return send(response, result.ok ? 200 : 503, result);
     } catch (error) {
       logger.error(error);
       return send(response, 500, failure('internal-error'));
     }
-  };
+  }
+
+  return { handler, warmUp };
 }

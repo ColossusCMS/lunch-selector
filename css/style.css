@@ -545,3 +545,34 @@ h1 {
  .rv-grade-symbol { width:65px; height:65px; margin-bottom:10px; }
  .rv-grade-whisper { margin-top:10px; }
 }
+
+.notice-title { overflow-wrap: anywhere; }
+.notice-count { color: var(--muted); font-size: .75em; white-space: nowrap; }
+.notice-content { white-space: pre-line; overflow-wrap: anywhere; line-height: 1.6; }
+.notice-link { display: inline-block; color: var(--accent); font-weight: 600; }
+.feedback-row { flex-wrap: wrap; }
+.feedback-row .rating-name { min-width: 10em; margin-bottom: 0; }
+.feedback-comment-label { display: block; margin-top: 8px; }
+.feedback-comment {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  resize: vertical;
+}
+.feedback-link {
+  display: block;
+  margin: 0 auto 12px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}

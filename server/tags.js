@@ -26,10 +26,23 @@ export function buildPrompt(categories) {
   ].join('\n');
 }
 
-export function validateOutput(output, categories) {
+export function parseAiObject(output) {
   const json = output.trim().replace(/^```(?:json)?\s*([\s\S]*?)\s*```$/i, '$1');
-  const parsed = JSON.parse(json);
+  let parsed;
+  try {
+    parsed = JSON.parse(json);
+  } catch (error) {
+    const start = json.indexOf('{');
+    const end = json.lastIndexOf('}');
+    if (start < 0 || end <= start) throw error;
+    parsed = JSON.parse(json.slice(start, end + 1));
+  }
   if (!isObject(parsed)) throw new Error('분류 결과가 JSON 객체가 아님');
+  return parsed;
+}
+
+export function validateOutput(output, categories) {
+  const parsed = parseAiObject(output);
   return Object.fromEntries(categories
     .filter((category) => Object.hasOwn(parsed, category) && Array.isArray(parsed[category]))
     .map((category) => [category, [...new Set(parsed[category].filter((tag) => TAGS.has(tag)))]]));

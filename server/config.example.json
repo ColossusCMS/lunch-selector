@@ -20,5 +20,6 @@
     12,
     13
   ],
-  "classifier": "claude"
+  "classifier": "claude",
+  "recommender": "claude"
 }

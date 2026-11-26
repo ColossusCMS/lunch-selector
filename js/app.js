@@ -1,22 +1,34 @@
 // 화면 초기화와 이벤트 처리.
 
-import { APP_VERSION, ABOUT_URL, modes, initialMode, dataUrl, editUrl, KAKAO_MAP_KEY, RATING, ratingEnabled, RECOMMEND_URL, RECOMMEND_MODE } from './config.js?v=169a5db0ebac';
-import { loadStores, fetchCsvRows, createRequestCounter } from './data.js?v=169a5db0ebac';
-import { listRegions, listGroups, listCategories, filterCandidates, closedToday, pickTop } from './select.js?v=169a5db0ebac';
-import { burstConfetti, reducedMotion } from './animation.js?v=169a5db0ebac';
-import { playFirstPick, showFirstPick } from './reveal.js?v=169a5db0ebac';
-import { canReplay } from './reveal-plan.js?v=169a5db0ebac';
-import { createSound } from './sound.js?v=169a5db0ebac';
-import { createMap, kakaoLink } from './map.js?v=169a5db0ebac';
-import { THEME_KEY, THEMES, parseTheme, applyTheme } from './theme.js?v=169a5db0ebac';
+import {
+  APP_VERSION, ABOUT_URL, modes, initialMode, dataUrl, editUrl, KAKAO_MAP_KEY, RATING, ratingEnabled,
+  RECOMMEND_URL, RECOMMEND_MODE, PUBLISH_URL, NOTICE, FEEDBACK, feedbackEnabled,
+} from './config.js?v=a5dc0fabb610';
+import { loadStores, fetchCsvRows, createRequestCounter } from './data.js?v=a5dc0fabb610';
+import { listRegions, listGroups, listCategories, filterCandidates, closedToday, pickTop } from './select.js?v=a5dc0fabb610';
+import { burstConfetti, reducedMotion } from './animation.js?v=a5dc0fabb610';
+import { playFirstPick, showFirstPick } from './reveal.js?v=a5dc0fabb610';
+import { canReplay } from './reveal-plan.js?v=a5dc0fabb610';
+import { createSound } from './sound.js?v=a5dc0fabb610';
+import { createMap, kakaoLink } from './map.js?v=a5dc0fabb610';
+import { THEME_KEY, THEMES, parseTheme, applyTheme } from './theme.js?v=a5dc0fabb610';
 import { PICK_KEY, ratingKey, aggregateRatings, cardTier, formatStatLine, parsePick, pickStatus,
-  buildRatingBody, applySendResults, dropIfSame, starLabel, ratingModeLabel,
-  shouldCheckRatings, shouldRefreshRatings } from './rating.js?v=169a5db0ebac';
+  buildRatingBody, applySendResults, dropIfSame, ratingModeLabel,
+  shouldCheckRatings, shouldRefreshRatings } from './rating.js?v=a5dc0fabb610';
 
-import { EXCLUDE_KEY, EXCLUDE_DAYS, readExcluded, withoutExcluded } from './exclude.js?v=169a5db0ebac';
+import { EXCLUDE_KEY, EXCLUDE_DAYS, readExcluded, withoutExcluded } from './exclude.js?v=a5dc0fabb610';
 
-import { buildRecommendUrl, fetchRecommendation, formatRecommendationAnnouncement, formatUpdatedAt, pickVisibleCategories } from './recommend.js?v=169a5db0ebac';
+import {
+  buildRecommendUrl, fetchRecommendation, formatRecommendationAnnouncement, formatUpdatedAt, pickVisibleCategories,
+} from './recommend.js?v=a5dc0fabb610';
 
+import { activeNotices, hideNotice, parseNotices, readHidden, todayInSeoul } from './notice.js?v=a5dc0fabb610';
+import { feedbackContext, shouldAutoPrompt } from './feedback.js?v=a5dc0fabb610';
+import { createStarControl, showFeedback, showNotice } from './dialogs.js?v=a5dc0fabb610';
+
+const NOTICE_KEY = 'lunch-selector:notice-hidden';
+const FEEDBACK_KEY = 'lunch-selector:feedback-prompted';
+const feedbackOn = Boolean(RECOMMEND_URL) && feedbackEnabled(FEEDBACK);
 const RECOMMEND_KEY = 'lunch-selector:recommend';
 const RECOMMEND_GUIDE_KEY = 'lunch-selector:recommend-guide-seen';
 const GROUP_KEY = 'lunch-selector:groups';
@@ -49,6 +61,9 @@ const els = {
   cardFlip: $('card-flip'),
   rank1: $('rank1'),
   ratingDialog: $('rating-dialog'),
+  noticeDialog: $('notice-dialog'),
+  feedbackDialog: $('feedback-dialog'),
+  feedbackOpen: $('feedback-open'),
   excludeDialog: $('exclude-dialog'),
   revealDialog: $('reveal-dialog'),
   announce: $('announce'),
@@ -65,9 +80,9 @@ const els = {
 };
 
 const state = {
-  /** @type {import('./config.js?v=169a5db0ebac').Mode} */
+  /** @type {import('./config.js?v=a5dc0fabb610').Mode} */
   mode: null,
-  /** @type {import('./stores.js?v=169a5db0ebac').Store[]} */
+  /** @type {import('./stores.js?v=a5dc0fabb610').Store[]} */
   stores: [],
   /** @type {string | null} null이면 지역 미선택, ''는 하위 호환 지역 */
   region: null,
@@ -107,6 +122,18 @@ const recommendation = {
   byRegion: new Map(),
 };
 
+const noticeUrl = PUBLISH_URL && NOTICE.gid
+  ? `${PUBLISH_URL}?gid=${encodeURIComponent(NOTICE.gid)}&single=true&output=csv` : '';
+const dialogs = [els.noticeDialog, els.ratingDialog, els.excludeDialog, els.revealDialog, els.feedbackDialog];
+const dialogOpen = () => dialogs.some((dialog) => dialog.open);
+let noticesLoading = Boolean(noticeUrl);
+let notices = [];
+let noticeIndex = 0;
+let ratingsAfterNotices = false;
+let pendingFeedbackRound = null;
+let feedbackPrompted = storage.get(FEEDBACK_KEY) === '1';
+let lastStore = '';
+
 const today = () => new Date().getDay();
 
 const describe = (store) =>
@@ -118,6 +145,7 @@ function setMessage(text) {
 
 function resetResult() {
   state.replay = null;
+  pendingFeedbackRound = null;
   state.round += 1;
   els.spinName.textContent = '?';
   els.spinName.classList.remove('done');
@@ -308,45 +336,9 @@ function showRatingCard(pick) {
     const name = document.createElement('div');
     name.className = 'rating-name';
     name.textContent = choice.name;
-    const options = document.createElement('div');
-    options.className = 'rating-options';
-    options.setAttribute('role', 'group');
-    options.setAttribute('aria-label', `${choice.name} 평가`);
-    const label = document.createElement('div');
-    label.className = 'rating-star-label';
-    label.setAttribute('aria-live', 'polite');
-    const stars = Array.from({ length: 5 }, (_, i) => {
-      const star = button('☆', 'rating-star');
-      const glyph = document.createElement('span');
-      glyph.className = 'rating-star-glyph';
-      glyph.textContent = '☆';
-      star.replaceChildren(glyph);
-      star.setAttribute('aria-label', `별 ${i + 1}개`);
-      star.setAttribute('aria-pressed', 'false');
-      star.addEventListener('click', () => {
-        choice.stars = choice.stars === i + 1 ? null : i + 1;
-        stars.forEach((el, j) => {
-          el.classList.remove('star-pop');
-          el.classList.toggle('filled', j < choice.stars);
-          el.firstElementChild.textContent = j < choice.stars ? '★' : '☆';
-          el.setAttribute('aria-pressed', String(choice.stars === j + 1));
-        });
-        label.textContent = starLabel(choice.stars);
-        if (choice.stars !== null) {
-          // 연속 클릭도 CSS 애니메이션을 처음부터 재생한다.
-          void options.offsetWidth;
-          stars.slice(0, choice.stars).forEach((el) => el.classList.add('star-pop'));
-        }
-        syncSend();
-      });
-      return star;
-    });
+    const { control, stars } = createStarControl(`${choice.name} 평가`, choice, syncSend);
     controls.push(...stars);
-    const rating = document.createElement('div');
-    rating.className = 'rating-control';
-    options.append(...stars);
-    rating.append(options, label);
-    row.append(name, rating);
+    row.append(name, control);
     return row;
   });
   skip.addEventListener('click', () => {
@@ -414,13 +406,76 @@ function refreshRatings() {
 
 function initRatings() {
   if (!shouldCheckRatings({ enabled: ratingsOn, spinning: state.spinning, replaying: state.replaying,
-    dialogOpen: [els.ratingDialog, els.excludeDialog, els.revealDialog].some(dialog => dialog.open) })) return;
+    dialogOpen: dialogOpen() })) return;
   refreshRatings();
+  if (noticesLoading || noticeIndex < notices.length) {
+    ratingsAfterNotices = true;
+    return;
+  }
   const pick = parsePick(storage.get(PICK_KEY));
   if (!pick) return;
   const status = pickStatus(pick, Date.now(), modes().map((m) => m.id));
   if (status === 'drop') storage.remove(PICK_KEY);
   else if (status === 'ask') showRatingCard(pick);
+}
+
+function readNoticePreferences(date) {
+  const raw = storage.get(NOTICE_KEY);
+  const hidden = readHidden(raw, date);
+  const cleaned = JSON.stringify(hidden);
+  if (raw !== null && raw !== cleaned) storage.set(NOTICE_KEY, cleaned);
+  return hidden;
+}
+
+async function loadNotices() {
+  if (!noticeUrl) return;
+  try {
+    const rows = await fetchCsvRows(noticeUrl, fetch, { timeout: 4000 });
+    const date = todayInSeoul();
+    notices = activeNotices(parseNotices(rows), date, readNoticePreferences(date));
+    if (notices.length) ratingsAfterNotices = true;
+  } catch (error) {
+    console.warn('공지를 불러오지 못했어요', error);
+  } finally {
+    noticesLoading = false;
+    flushDialogs();
+  }
+}
+
+function openFeedback() {
+  const context = feedbackContext({
+    region: state.region, recommendation: recommendation.result,
+    recommendOn: recommendation.enabled, store: lastStore, version: APP_VERSION,
+  });
+  showFeedback(els.feedbackDialog, FEEDBACK, context);
+}
+
+function flushDialogs() {
+  if (noticesLoading || state.spinning || state.replaying || dialogOpen()) return;
+  if (noticeIndex < notices.length) {
+    const notice = notices[noticeIndex++];
+    showNotice(els.noticeDialog, notice, noticeIndex, notices.length, (id, kind) => {
+      const date = todayInSeoul();
+      const hidden = hideNotice(readNoticePreferences(date), id, kind, date);
+      storage.set(NOTICE_KEY, JSON.stringify(hidden));
+    });
+    return;
+  }
+  if (ratingsAfterNotices) {
+    ratingsAfterNotices = false;
+    try {
+      initRatings();
+    } catch (error) {
+      console.warn('평가 기능을 시작하지 못했어요', error);
+    }
+    if (dialogOpen()) return;
+  }
+  if (pendingFeedbackRound === state.round && !feedbackPrompted) {
+    pendingFeedbackRound = null;
+    openFeedback();
+    feedbackPrompted = true;
+    storage.set(FEEDBACK_KEY, '1');
+  }
 }
 
 /** 찾은 좌표로 링크를 고치고, 하나라도 찾았으면 지도에 핀을 찍는다. */
@@ -474,7 +529,8 @@ function renderRecommendation({ pending = false } = {}) {
   els.recommendMessage.hidden = !result || !enabled;
   els.recommendSummary.textContent = enabled ? result?.message ?? '' : '';
   els.recommendDetails.textContent = result && enabled
-    ? `🤖 AI 추천 · ${result.region} 점심시간 날씨 기준 · ${formatUpdatedAt(result.updatedAt)} 갱신` : '';
+    ? `${result.source === 'ai' ? '🤖 AI 추천' : '날씨 기준'} · ${result.region} 점심시간 날씨${result.source === 'ai' ? ' 기준' : ''} · ${formatUpdatedAt(result.updatedAt)} 갱신`
+    : '';
   if (!enabled || (!result && !pending)) els.recommendGuide.hidden = true;
 }
 
@@ -669,6 +725,11 @@ async function present(picks, candidates, sound) {
   els.rank1.inert = false;
   els.cardBack.setAttribute('aria-hidden', 'true');
   els.rank1.classList.add('unveiled');
+  lastStore = first.name;
+  if (shouldAutoPrompt({
+    enabled: feedbackOn, recommendOn: recommendation.enabled,
+    mode: state.mode.id, prompted: feedbackPrompted,
+  })) pendingFeedbackRound = round;
   if (ratingsOn) {
     savePick({ at: Date.now(), mode: state.mode.id, region: state.region, names: picks.map((s) => s.name) });
   }
@@ -704,6 +765,7 @@ function renderReplay() {
     } finally {
       sound.stopSound(); state.replaying = false; setControlsDisabled(state.spinning);
       if (button.isConnected) { button.disabled = false; button.focus({ preventScroll: true }); }
+      flushDialogs();
     }
   });
   els.rank1.append(button);
@@ -737,6 +799,7 @@ async function spin() {
     setControlsDisabled(false);
     els.spin.textContent = '🎰 다시 돌리기';
     renderReplay();
+    flushDialogs();
   }
 }
 
@@ -890,6 +953,12 @@ els.theme.addEventListener('click', (event) => {
   if (button) selectTheme(button.dataset.theme);
 });
 
+for (const dialog of dialogs) dialog.addEventListener('close', flushDialogs);
+els.feedbackOpen.hidden = !feedbackOn;
+els.feedbackOpen.addEventListener('click', () => {
+  if (feedbackOn && !state.spinning && !state.replaying && !dialogOpen()) openFeedback();
+});
+
 els.spin.addEventListener('click', spin);
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') initRatings();
@@ -919,6 +988,7 @@ if (first === null) {
   selectMode(first);
 }
 
+void loadNotices();
 try {
   initRatings();
 } catch (err) {

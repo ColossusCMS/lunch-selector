@@ -75,3 +75,14 @@
 - 2026-11-26 11:24 [codex] 사이클 028 수정 1/2: N-1~N-5 반영. npm test 144 통과, Chrome 지연 응답·안내·가이드·캐시 전환 및 기존 흐름 확인.
 - 2026-11-26 11:26 [pm] 사이클 028 완료: AI 메뉴 추천 프론트(추천 줄·토글·꺼짐 배지·가이드·announce, js/recommend.js, 늦은 응답은 회전·결과 중 업종 미적용) + 서버 regionWarnings 상한 — 수정 1/2, 적대검증 PASS·DoD 충족, npm test 144 pass. RECOMMEND_URL은 빈 값(서버 배포 후 사용자 설정). 남은 사소: 교집합 0일 때 '업종 0개를 켰어요' 낭독
 - 2026-11-26 14:16 [pm] v2.4 준비: RECOMMEND_URL=https://colossuskim.duckdns.org:29187 설정, APP_VERSION·README 배지 v2.4, npm run bump(169a5db0ebac), npm test 144 pass
+- 2026-11-26 15:42 [pm] 사이클 029 지시: AI 직접 추천(서버) — 지역·날짜·날씨분류 key별 AI 업종 2~6개+문구, 규칙 대체, source ai/rule, 정반대 안전장치, CLI 직렬화, 30분·하루 3회 재시도
+- 2026-11-26 15:45 [codex] 사이클 029 구현: AI 업종·문구 직접 추천, 규칙 대체 응답, 키별 재시도·CLI 직렬화·시작 워밍업. npm test 158 통과.
+- 2026-11-26 15:46 [pm] 029 1차 검수 시작(reviewer·supervisor)
+- 2026-11-26 15:48 [pm] 사이클 029 수정 1/2 지시: 낡은 key 작업 건너뛰기, AI 출력 앞뒤 설명문 허용, 지역별 오류, health source 정확도, 체감 표기, Cf 정리, 주입 테스트
+- 2026-11-26 15:50 [codex] 사이클 029 수정 1/2: P-1~P-7 반영, npm test 165 통과.
+- 2026-11-26 15:50 [pm] 사이클 029 완료: AI 직접 추천(서버) — 수정 1/2(P-1~P-7) PM 확인, reviewer Must 없음·supervisor 적대검증 PASS·DoD 충족, npm test 165 pass
+- 2026-11-26 15:50 [pm] 사이클 030 지시: 공지 팝업(공지관리 탭)·AI 추천 피드백 모달·출처 표시·v2.5
+- 2026-11-26 15:56 [codex] 사이클 030 구현: 공지·AI 추천 피드백·출처 및 v2.5 준비. npm test 176 통과, Chrome 가짜 데이터 확인 및 스크린샷 6장.
+- 2026-11-26 15:58 [pm] 사이클 030 수정 1/2 지시: 실패 후 포커스, status 낭독, 공지 4초 제한, readHidden 항목별 정리, flushDialogs 예외 처리, README 테스트 배지
+- 2026-11-26 16:00 [codex] 사이클 030 수정 1/2: Q-1~Q-6 반영. npm test 177 통과, Chrome 피드백 상태·공지 제한·예외 복구 확인.
+- 2026-11-26 16:00 [pm] 사이클 030 완료: 공지 팝업·AI 추천 피드백·출처 표시·v2.5 — 수정 1/2(Q-1~Q-6) PM 확인, reviewer Must 없음·supervisor 적대검증 PASS·DoD 충족, npm test 177 pass

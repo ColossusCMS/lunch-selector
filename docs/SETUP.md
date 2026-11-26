@@ -130,7 +130,46 @@ docker compose -f server/compose.example.yml up -d --build
 
 - `regions`에 지역 이름과 좌표를 추가한다. 이름은 점심 시트의 `지역` 값과 일치해야 한다. 설정을 저장한 뒤 `docker compose -f server/compose.example.yml restart lunch-recommend`로 다시 읽힌다.
 - `port`를 변경하면 Compose의 포트 매핑도 맞춘다. `allowedOrigins`에는 추천 API를 호출할 화면의 출처를 넣는다. 외부 HTTPS 주소는 별도로 준비한다.
-- `classifier: "claude"`로 쓸 때는 최초에 `docker exec -it lunch-recommend claude`를 실행해 로그인한다. Linux의 로그인 정보는 `/home/node/.claude/.credentials.json`에 저장되고 Compose 볼륨에 남는다. 로그인 전이나 시드만 사용하려면 `classifier: "off"`로 설정하고 재시작한다.
+- `classifier` 또는 `recommender`를 `"claude"`로 쓸 때는 최초에 `docker exec -it lunch-recommend claude`를 실행해 로그인한다. Linux의 로그인 정보는 `/home/node/.claude/.credentials.json`에 저장되고 Compose 볼륨에 남는다. 로그인 전에 규칙과 시드로 운영하려면 두 설정을 모두 `"off"`로 설정하고 재시작한다.
+- 기본값인 `recommender: "claude"`는 서버가 시작할 때 모든 지역의 AI 추천을 준비한다. 이후에는 요청 시 지역·서울 날짜·날씨 분류 조합을 기준으로 새 추천을 생성한다. AI 결과가 준비되는 동안에는 날씨 규칙 결과를 반환한다. 실패하면 같은 키는 30분 뒤 재시도할 수 있고 하루 최대 3회 시도한다. `recommender: "off"`로 설정하면 항상 규칙으로 추천한다. 이 옵션과 미분류 업종에 태그를 붙이는 `classifier`는 각각 설정한다.
 - 운영 태그는 컨테이너의 `/app/server/data/category-tags.json`에 있다. 원하는 업종의 배열을 편집하면 다음 요청부터 반영된다. 배열이 비어 있어도 분류 완료로 처리하며 AI는 이미 있는 업종을 덮어쓰지 않는다. `tagsFile`을 지정하면 설정 파일 기준 상대 경로나 절대 경로를 쓸 수 있다. 컨테이너에서는 해당 폴더에 지속 볼륨과 쓰기 권한을 마련한다.
 - `curl http://localhost:8787/health`로 `classifier`, 최근 시트에서 읽은 미분류 업종 수(`untagged`), 마지막 분류 오류(`lastClassifyError`)를 확인한다. 첫 시트 조회 전에는 `untagged`가 0이다. 서버 실행 중 태그 파일을 읽을 수 없으면 마지막 정상 태그로 추천하고 AI 저장을 건너뛴다. 파일을 고친 뒤 `/health`의 `tagsFileError`가 `null`인지 확인한다. 기동 시점에 파일이 손상되어 있으면 서버가 시작되지 않는다.
+- `/health`의 `recommendations`는 오늘 조회한 지역별 `key`(서울 날짜와 날씨 분류), `source`(`ai` 또는 `rule`), 현재 키의 CLI 호출 횟수(`attempts`), 마지막 오류(`error`)를 보여준다. 그 지역의 AI 추천이 성공하면 오류가 지워진다. 최상위 `lastRecommendError`는 남은 지역별 오류 중 가장 최근 값이며, 오류가 없으면 `null`이다. 서울 날짜가 바뀌면 이전 날짜의 지역 상태와 오류를 지운다.
 - HTTPS 연결을 준비한 뒤 `js/config.js`의 `RECOMMEND_URL`에 서버 기본 주소를 끝 슬래시 없이 넣고 `npm run bump` 후 배포한다.
+
+## 공지 팝업
+
+가게 목록과 같은 스프레드시트의 `공지관리` 탭을 웹에 게시한다. `js/config.js`의 `NOTICE.gid`에 탭의 gid를 넣는다. 현재 값은 `580874591`이다. `PUBLISH_URL` 또는 `NOTICE.gid`를 비우면 공지가 꺼진다.
+
+| 열 | 입력 방법 |
+|---|---|
+| `ID` | 공지마다 새 ID를 사용한다. 영문·숫자·하이픈 1~40자. |
+| `사용` | 열을 선택하고 **삽입 → 체크박스**로 만든 뒤 띄울 행에 체크한다. |
+| `시작일` | `YYYY-MM-DD`. 한국 날짜 기준 해당 날짜부터 표시한다. |
+| `종료일` | `YYYY-MM-DD`. 종료일 당일까지 표시한다. 비워두면 계속 표시한다. |
+| `제목` | 한 줄 제목. |
+| `내용` | 공지 본문. 셀 안의 줄바꿈을 유지한다. |
+| `버튼` | 링크의 버튼 문구. 링크만 넣으면 ‘자세히 보기’로 표시한다. |
+| `링크` | 유효한 `https://` 주소. 새 탭에서 열린다. |
+
+활성 공지는 최신 시작일부터 최대 3개를 차례로 띄운다. 시작일이 같으면 시트 아래쪽 행이 우선이다. 숨김은 ID에 연결되므로 새 공지에는 새 ID를 쓴다. 웹 게시 갱신에는 몇 분이 걸릴 수 있고 게시된 내용은 공개된다.
+
+## AI 추천 피드백
+
+Google Forms에서 아래 질문 9개를 모두 **단답형**, **필수 아님**으로 만들고 이메일 수집과 로그인 요구를 끈다.
+
+| 설정 키 | 폼에 들어가는 값 |
+|---|---|
+| `feature` | AI 추천 기능은 어떤가요? (1~5) |
+| `result` | 추천 결과가 마음에 드나요? (1~5) |
+| `comment` | 피드백·제안 (선택, 최대 500자) |
+| `region` | 지역 |
+| `weather` | 날씨 요약 |
+| `categories` | 추천 업종 |
+| `source` | 추천 출처 |
+| `store` | 1순위 가게 |
+| `version` | 앱 버전 |
+
+폼의 **미리 채워진 링크 가져오기**에서 질문마다 예시 값을 넣어 링크를 생성한다. 링크의 `entry.숫자`를 질문별로 찾아 `js/config.js`의 `FEEDBACK.entries`에 넣고, `FEEDBACK.formUrl`에는 `/formResponse`로 끝나는 전송 주소를 넣는다. 추천 서버 주소와 피드백 설정이 모두 있으면 하단 버튼이 표시된다.
+
+폼에 필수 질문을 추가하거나 로그인 제한을 켜면 사이트에서 성공처럼 보여도 제출이 조용히 실패할 수 있다. 폼 설정을 변경한 뒤에는 응답 시트로 수신을 확인한다.

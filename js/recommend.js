@@ -8,12 +8,24 @@ export function buildRecommendUrl(base, region) {
 
 export function parseRecommendation(json) {
   if (json?.ok !== true) return null;
-  const { region, categories, weather, message, updatedAt } = json;
+  const { region, categories, weather, message, updatedAt, source } = json;
   if (typeof region !== 'string'
     || !Array.isArray(categories) || !categories.every((category) => typeof category === 'string')
     || typeof weather?.badge !== 'string' || typeof message !== 'string'
     || typeof updatedAt !== 'string' || !Number.isFinite(Date.parse(updatedAt))) return null;
-  return { region, categories: [...categories], badge: weather.badge, message, updatedAt };
+  return {
+    region, categories: [...categories], badge: weather.badge, message, updatedAt,
+    source: source === 'ai' ? 'ai' : 'rule',
+    weather: {
+      badge: weather.badge,
+      conditions: Array.isArray(weather.conditions) ? weather.conditions.filter(
+        (condition) => ['rain', 'hot', 'cold'].includes(condition)) : [],
+      apparentMin: Number.isFinite(weather.apparentMin) ? weather.apparentMin : null,
+      apparentMax: Number.isFinite(weather.apparentMax) ? weather.apparentMax : null,
+      precipitationProbabilityMax: Number.isFinite(weather.precipitationProbabilityMax)
+        ? weather.precipitationProbabilityMax : null,
+    },
+  };
 }
 
 export async function fetchRecommendation(url, fetchFn = fetch, { timeout = 3000 } = {}) {
@@ -49,5 +61,6 @@ export function formatUpdatedAt(iso) {
 
 export function formatRecommendationAnnouncement(message, appliedCount) {
   const summary = `AI 메뉴 추천: ${message}`;
+  if (appliedCount === 0) return `${summary} 추천 업종이 지금 화면에 없어요`;
   return appliedCount === null ? summary : `${summary} 업종 ${appliedCount}개를 켰어요`;
 }

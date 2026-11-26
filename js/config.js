@@ -1,7 +1,9 @@
 // 시트 연결 설정. 처음 한 번만 고치면 된다.
 
+import { FEEDBACK_FIELDS } from './feedback.js?v=a5dc0fabb610';
+
 // 릴리스 때 화면에 표시할 앱 버전은 여기서 갱신한다.
-export const APP_VERSION = 'v2.4';
+export const APP_VERSION = 'v2.5';
 
 // 추천 서버의 HTTPS 주소. 비워두면 추천 줄을 숨긴다.
 export const RECOMMEND_URL = 'https://colossuskim.duckdns.org:29187';
@@ -44,6 +46,28 @@ export const RATING = {
   // 폼의 미리 채워진 링크에서 찾은 질문별 entry.숫자 ID.
   entries: { region: 'entry.984834608', mode: 'entry.434634594', name: 'entry.1793193481', stars: 'entry.73675555' },
 };
+
+export const NOTICE = { gid: '580874591' };
+
+export const FEEDBACK = {
+  formUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSecWJzqrdzrhN0CgldgdqiHmkfPsq7QZvJQJbfYA8v1_EnyeQ/formResponse',
+  entries: {
+    feature: 'entry.1410298134',
+    result: 'entry.212274172',
+    comment: 'entry.1590812819',
+    region: 'entry.843951537',
+    weather: 'entry.129957015',
+    categories: 'entry.1251237933',
+    source: 'entry.341670665',
+    store: 'entry.577077389',
+    version: 'entry.512805220',
+  },
+};
+
+export function feedbackEnabled(feedback) {
+  return [feedback?.formUrl, ...FEEDBACK_FIELDS.map((key) => feedback?.entries?.[key])]
+    .every((value) => typeof value === 'string' && value.trim().length > 0);
+}
 
 export function ratingEnabled(rating) {
   return [rating?.formUrl, rating?.csvUrl,

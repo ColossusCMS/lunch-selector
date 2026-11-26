@@ -12,7 +12,7 @@
       if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
     } catch { /* 저장소를 못 쓰면 시스템 설정을 따른다 */ }
   </script>
-  <link rel="stylesheet" href="css/style.css?v=169a5db0ebac">
+  <link rel="stylesheet" href="css/style.css?v=a5dc0fabb610">
 </head>
 <body>
   <main class="app">
@@ -81,6 +81,7 @@
 
     <footer class="footer">
       <p id="closed" class="closed" hidden></p>
+      <button id="feedback-open" type="button" class="feedback-link" hidden>🤖 AI 추천 피드백</button>
       <a id="edit-link" class="edit-link" target="_blank" rel="noopener" hidden>✏️ 가게 목록 편집하기</a>
       <a id="about-link" class="about-link" target="_blank" rel="noopener" hidden>🐙 GitHub에서 소개 보기</a>
     </footer>
@@ -88,12 +89,14 @@
   <aside id="recommend-guide" class="recommend-guide" aria-labelledby="recommend-guide-title" hidden>
     <h2 id="recommend-guide-title">🤖 AI 메뉴 추천을 켰어요</h2>
     <ul>
-      <li>AI가 오늘 날씨에 어울리는 업종을 골라 켜줘요</li>
+      <li>AI가 오늘 날씨를 보고 어울리는 업종을 골라 켜줘요</li>
       <li>지역을 바꾸면 그 지역 날씨로 다시 골라요</li>
       <li>업종 버튼은 언제든 직접 바꿀 수 있어요</li>
     </ul>
     <button id="recommend-guide-ok" type="button">확인</button>
   </aside>
+  <dialog id="notice-dialog" class="rating-dialog notice-dialog" aria-labelledby="notice-title"></dialog>
+  <dialog id="feedback-dialog" class="rating-dialog feedback-dialog" aria-labelledby="feedback-title"></dialog>
   <dialog id="rating-dialog" class="rating-dialog" aria-labelledby="rating-title"></dialog>
   <dialog id="exclude-dialog" class="rating-dialog" aria-labelledby="exclude-title"></dialog>
   <dialog id="reveal-dialog" class="reveal-dialog" aria-label="1순위 공개 연출" tabindex="-1"></dialog>
@@ -116,6 +119,6 @@
       });
     })();
   </script>
-  <script type="module" src="js/app.js?v=169a5db0ebac" onerror="window.__lunchStartFailed()"></script>
+  <script type="module" src="js/app.js?v=a5dc0fabb610" onerror="window.__lunchStartFailed()"></script>
 </body>
 </html>
