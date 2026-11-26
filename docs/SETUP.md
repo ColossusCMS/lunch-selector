@@ -118,3 +118,19 @@ Node 22 이상. 외부 의존성은 없습니다.
 
 1·2·3을 마친 뒤 배포하세요. 지역·혼잡도 열 없이도 기존 목록은 동작하지만, region entry가 없으면 평점 기능은 꺼집니다. 지역을 도입하면 기존 평점 행에도 지역을 채워야 이어집니다. 이전 추천 기록은 무효 처리되므로 한 번의 평가 기회를 잃을 수 있습니다.
 릴리스 때 `js/config.js`의 `APP_VERSION`을 갱신합니다.
+
+## AI 메뉴 추천 서버
+
+저장소 루트에서 예제 설정을 복사하고 `server/config.json`을 편집한다. `compose up` 전에 파일을 먼저 만들어야 한다. 파일이 없으면 Docker가 이 경로에 디렉터리를 만들 수 있다. 컨테이너의 `node` 사용자(UID 1000)가 파일을 읽을 수 있어야 한다.
+
+```sh
+cp server/config.example.json server/config.json
+docker compose -f server/compose.example.yml up -d --build
+```
+
+- `regions`에 지역 이름과 좌표를 추가한다. 이름은 점심 시트의 `지역` 값과 일치해야 한다. 설정을 저장한 뒤 `docker compose -f server/compose.example.yml restart lunch-recommend`로 다시 읽힌다.
+- `port`를 변경하면 Compose의 포트 매핑도 맞춘다. `allowedOrigins`에는 추천 API를 호출할 화면의 출처를 넣는다. 외부 HTTPS 주소는 별도로 준비한다.
+- `classifier: "claude"`로 쓸 때는 최초에 `docker exec -it lunch-recommend claude`를 실행해 로그인한다. Linux의 로그인 정보는 `/home/node/.claude/.credentials.json`에 저장되고 Compose 볼륨에 남는다. 로그인 전이나 시드만 사용하려면 `classifier: "off"`로 설정하고 재시작한다.
+- 운영 태그는 컨테이너의 `/app/server/data/category-tags.json`에 있다. 원하는 업종의 배열을 편집하면 다음 요청부터 반영된다. 배열이 비어 있어도 분류 완료로 처리하며 AI는 이미 있는 업종을 덮어쓰지 않는다. `tagsFile`을 지정하면 설정 파일 기준 상대 경로나 절대 경로를 쓸 수 있다. 컨테이너에서는 해당 폴더에 지속 볼륨과 쓰기 권한을 마련한다.
+- `curl http://localhost:8787/health`로 `classifier`, 최근 시트에서 읽은 미분류 업종 수(`untagged`), 마지막 분류 오류(`lastClassifyError`)를 확인한다. 첫 시트 조회 전에는 `untagged`가 0이다. 서버 실행 중 태그 파일을 읽을 수 없으면 마지막 정상 태그로 추천하고 AI 저장을 건너뛴다. 파일을 고친 뒤 `/health`의 `tagsFileError`가 `null`인지 확인한다. 기동 시점에 파일이 손상되어 있으면 서버가 시작되지 않는다.
+- HTTPS 연결을 준비한 뒤 `js/config.js`의 `RECOMMEND_URL`에 서버 기본 주소를 끝 슬래시 없이 넣고 `npm run bump` 후 배포한다.

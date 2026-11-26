@@ -1,0 +1,29 @@
+services:
+  lunch-recommend:
+    container_name: lunch-recommend
+    build:
+      context: ..
+      dockerfile: server/Dockerfile
+    ports:
+      - "8787:8787"
+    volumes:
+      - ./config.json:/app/server/config.json:ro
+      - claude-config:/home/node/.claude
+      - category-tags:/app/server/data
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - >
+          const { port } = require('/app/server/config.json');
+          fetch('http://localhost:' + port + '/health')
+            .then(response => process.exit(response.ok ? 0 : 1), () => process.exit(1));
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+volumes:
+  claude-config:
+  category-tags:

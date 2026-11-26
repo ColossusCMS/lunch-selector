@@ -1,0 +1,24 @@
+{
+  "port": 8787,
+  "allowedOrigins": [
+    "https://colossuscms.github.io",
+    "http://localhost:5173"
+  ],
+  "sheetCsvUrl": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQWy__V0_6ECJT2UuhK7vNYLbu0R5bF5tsjLofOgSu0uWXXLya3qnUOexOowE7Cksc-IXcMpg7hhkU0/pub?gid=0&single=true&output=csv",
+  "regions": {
+    "검암": {
+      "lat": 37.569,
+      "lon": 126.674
+    },
+    "을지로": {
+      "lat": 37.566,
+      "lon": 126.992
+    }
+  },
+  "lunchHours": [
+    11,
+    12,
+    13
+  ],
+  "classifier": "claude"
+}

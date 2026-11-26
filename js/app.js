@@ -1,20 +1,24 @@
 // 화면 초기화와 이벤트 처리.
 
-import { APP_VERSION, ABOUT_URL, modes, initialMode, dataUrl, editUrl, KAKAO_MAP_KEY, RATING, ratingEnabled } from './config.js?v=419ee43b2143';
-import { loadStores, fetchCsvRows, createRequestCounter } from './data.js?v=419ee43b2143';
-import { listRegions, listGroups, listCategories, filterCandidates, closedToday, pickTop } from './select.js?v=419ee43b2143';
-import { burstConfetti, reducedMotion } from './animation.js?v=419ee43b2143';
-import { playFirstPick, showFirstPick } from './reveal.js?v=419ee43b2143';
-import { canReplay } from './reveal-plan.js?v=419ee43b2143';
-import { createSound } from './sound.js?v=419ee43b2143';
-import { createMap, kakaoLink } from './map.js?v=419ee43b2143';
-import { THEME_KEY, THEMES, parseTheme, applyTheme } from './theme.js?v=419ee43b2143';
+import { APP_VERSION, ABOUT_URL, modes, initialMode, dataUrl, editUrl, KAKAO_MAP_KEY, RATING, ratingEnabled, RECOMMEND_URL, RECOMMEND_MODE } from './config.js?v=032cfc5d7115';
+import { loadStores, fetchCsvRows, createRequestCounter } from './data.js?v=032cfc5d7115';
+import { listRegions, listGroups, listCategories, filterCandidates, closedToday, pickTop } from './select.js?v=032cfc5d7115';
+import { burstConfetti, reducedMotion } from './animation.js?v=032cfc5d7115';
+import { playFirstPick, showFirstPick } from './reveal.js?v=032cfc5d7115';
+import { canReplay } from './reveal-plan.js?v=032cfc5d7115';
+import { createSound } from './sound.js?v=032cfc5d7115';
+import { createMap, kakaoLink } from './map.js?v=032cfc5d7115';
+import { THEME_KEY, THEMES, parseTheme, applyTheme } from './theme.js?v=032cfc5d7115';
 import { PICK_KEY, ratingKey, aggregateRatings, cardTier, formatStatLine, parsePick, pickStatus,
   buildRatingBody, applySendResults, dropIfSame, starLabel, ratingModeLabel,
-  shouldCheckRatings, shouldRefreshRatings } from './rating.js?v=419ee43b2143';
+  shouldCheckRatings, shouldRefreshRatings } from './rating.js?v=032cfc5d7115';
 
-import { EXCLUDE_KEY, EXCLUDE_DAYS, readExcluded, withoutExcluded } from './exclude.js?v=419ee43b2143';
+import { EXCLUDE_KEY, EXCLUDE_DAYS, readExcluded, withoutExcluded } from './exclude.js?v=032cfc5d7115';
 
+import { buildRecommendUrl, fetchRecommendation, formatRecommendationAnnouncement, formatUpdatedAt, pickVisibleCategories } from './recommend.js?v=032cfc5d7115';
+
+const RECOMMEND_KEY = 'lunch-selector:recommend';
+const RECOMMEND_GUIDE_KEY = 'lunch-selector:recommend-guide-seen';
 const GROUP_KEY = 'lunch-selector:groups';
 const REGION_KEY = 'lunch-selector:region';
 const MODE_KEY = 'lunch-selector:mode';
@@ -27,6 +31,14 @@ const els = {
   heading: $('heading-text'),
   appVersion: $('app-version'),
   modes: $('modes'),
+  recommendRow: $('recommend-row'),
+  recommendToggle: $('recommend-toggle'),
+  recommendBadge: $('recommend-badge'),
+  recommendMessage: $('recommend-message'),
+  recommendSummary: $('recommend-summary'),
+  recommendDetails: $('recommend-details'),
+  recommendGuide: $('recommend-guide'),
+  recommendGuideOk: $('recommend-guide-ok'),
   regions: $('regions'),
   groups: $('groups'),
   categories: $('categories'),
@@ -53,9 +65,9 @@ const els = {
 };
 
 const state = {
-  /** @type {import('./config.js?v=419ee43b2143').Mode} */
+  /** @type {import('./config.js?v=032cfc5d7115').Mode} */
   mode: null,
-  /** @type {import('./stores.js?v=419ee43b2143').Store[]} */
+  /** @type {import('./stores.js?v=032cfc5d7115').Store[]} */
   stores: [],
   /** @type {string | null} null이면 지역 미선택, ''는 하위 호환 지역 */
   region: null,
@@ -85,6 +97,14 @@ const storage = {
   remove(key) {
     try { localStorage.removeItem(key); } catch { /* 저장 불가 환경 무시 */ }
   },
+};
+
+const recommendation = {
+  enabled: storage.get(RECOMMEND_KEY) === 'on',
+  result: null,
+  manualSelection: false,
+  requests: createRequestCounter(),
+  byRegion: new Map(),
 };
 
 const today = () => new Date().getDay();
@@ -444,6 +464,77 @@ function readGroups() {
   } catch { return {}; }
 }
 
+function renderRecommendation({ pending = false } = {}) {
+  const { result, enabled } = recommendation;
+  const badge = enabled ? '' : result?.badge ?? '';
+  els.recommendRow.hidden = !result;
+  els.recommendToggle.setAttribute('aria-pressed', String(enabled));
+  els.recommendBadge.textContent = badge;
+  els.recommendBadge.hidden = !badge;
+  els.recommendMessage.hidden = !result || !enabled;
+  els.recommendSummary.textContent = enabled ? result?.message ?? '' : '';
+  els.recommendDetails.textContent = result && enabled
+    ? `🤖 AI 추천 · ${result.region} 점심시간 날씨 기준 · ${formatUpdatedAt(result.updatedAt)} 갱신` : '';
+  if (!enabled || (!result && !pending)) els.recommendGuide.hidden = true;
+}
+
+function applyRecommendation() {
+  const { result, enabled, manualSelection } = recommendation;
+  if (!result || !enabled || manualSelection) return null;
+  const visible = listCategories(state.stores, state.region, state.group);
+  state.categories = new Set(pickVisibleCategories(result.categories, visible));
+  syncCategoryChips();
+  return state.categories.size;
+}
+
+function announceRecommendation(appliedCount) {
+  const { result, enabled } = recommendation;
+  if (result && enabled) {
+    els.announce.textContent = formatRecommendationAnnouncement(result.message, appliedCount);
+  }
+}
+
+async function loadRecommendation() {
+  const id = recommendation.requests.next();
+  const { region, mode } = state;
+  recommendation.manualSelection = false;
+  if (!RECOMMEND_URL || mode.id !== RECOMMEND_MODE || !region) {
+    recommendation.result = null;
+    renderRecommendation();
+    return;
+  }
+
+  if (!recommendation.byRegion.has(region)) {
+    const entry = { result: undefined, request: null };
+    const url = buildRecommendUrl(RECOMMEND_URL, region);
+    entry.request = fetchRecommendation(url).then((result) => {
+      entry.result = result?.region === region ? result : null;
+      return entry.result;
+    });
+    recommendation.byRegion.set(region, entry);
+  }
+
+  const entry = recommendation.byRegion.get(region);
+  let result = entry.result;
+  if (result === undefined) {
+    recommendation.result = null;
+    renderRecommendation({ pending: true });
+    result = await entry.request;
+    if (!recommendation.requests.isLatest(id) || state.region !== region || state.mode !== mode) return;
+    if (state.spinning || state.replaying || els.cardFlip.classList.contains('revealed')) {
+      recommendation.manualSelection = true;
+    }
+  }
+  recommendation.result = result;
+  renderRecommendation();
+  announceRecommendation(applyRecommendation());
+}
+
+function dismissRecommendGuide() {
+  els.recommendGuide.hidden = true;
+  if (document.activeElement === els.recommendGuideOk) els.recommendToggle.focus();
+}
+
 function selectRegion(region) {
   state.region = region;
   state.categories.clear();
@@ -473,6 +564,7 @@ function selectRegion(region) {
   }
   els.spin.disabled = region === null;
   els.includeExcluded.disabled = els.spin.disabled;
+  void loadRecommendation();
 }
 
 function renderGroups() {
@@ -514,15 +606,18 @@ function setControlsDisabled(disabled) {
   els.spin.disabled = disabled || state.region === null;
   els.includeExcluded.disabled = els.spin.disabled;
   for (const chip of document.querySelectorAll('.chip')) chip.disabled = disabled;
+  els.recommendToggle.disabled = disabled;
 }
 
 function selectGroup(group) {
   state.group = group;
   state.categories.clear();
+  recommendation.manualSelection = false;
   const saved = readGroups();
   storage.set(GROUP_KEY, JSON.stringify({ ...saved, [state.region]: group ?? ALL_SAVED }));
   syncGroupChips();
   renderCategories();
+  applyRecommendation();
   renderClosed();
   resetResult();
 }
@@ -687,6 +782,7 @@ function selectMode(mode) {
   els.editLink.hidden = !edit;
   if (edit) els.editLink.href = edit;
   state.region = null;
+  void loadRecommendation();
   resetResult();
   for (const el of [els.regions, els.groups, els.categories]) el.parentElement.hidden = true;
   els.groups.replaceChildren();
@@ -730,6 +826,33 @@ async function load() {
   setControlsDisabled(false);
 }
 
+els.recommendToggle.addEventListener('click', () => {
+  if (!recommendation.result || state.spinning || state.replaying) return;
+  recommendation.enabled = !recommendation.enabled;
+  recommendation.manualSelection = false;
+  storage.set(RECOMMEND_KEY, recommendation.enabled ? 'on' : 'off');
+  let appliedCount = null;
+  if (recommendation.enabled) {
+    appliedCount = applyRecommendation();
+  } else {
+    state.categories.clear();
+    syncCategoryChips();
+  }
+  resetResult();
+  renderRecommendation();
+  announceRecommendation(appliedCount);
+  if (recommendation.enabled && !storage.get(RECOMMEND_GUIDE_KEY)) {
+    storage.set(RECOMMEND_GUIDE_KEY, '1');
+    els.recommendGuide.hidden = false;
+  }
+});
+
+els.recommendGuideOk.addEventListener('click', dismissRecommendGuide);
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && !event.defaultPrevented && !els.recommendGuide.hidden
+    && !document.querySelector('dialog[open]')) dismissRecommendGuide();
+});
+
 els.regions.addEventListener('click', (event) => {
   const chip = event.target.closest('.chip');
   if (!chip || state.spinning) return;
@@ -747,6 +870,7 @@ els.groups.addEventListener('click', (event) => {
 els.categories.addEventListener('click', (event) => {
   const chip = event.target.closest('.chip');
   if (!chip || state.spinning) return;
+  recommendation.manualSelection = true;
   const { category } = chip.dataset;
   if (category === undefined) state.categories.clear();
   else if (state.categories.has(category)) state.categories.delete(category);

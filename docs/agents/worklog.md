@@ -63,3 +63,14 @@
 - 2026-11-05 19:02 [codex] 사이클 026 구현 1차: visible/persisted pageshow 평가 재확인·평점5분 성공 캐시/요청 공유·busy/dialog 건너뛰기 (app·rating·tests·README 외 버전/기록) — npm test 113 pass, Chrome 29/31분·만료·각busy/창·요청1→1→2·실패보존/지도 회귀 PASS, hash 419ee43b2143
 - 2026-11-05 19:02 [pm] 사이클 026 완료: 탭 복귀(visibilitychange·bfcache pageshow) 시 평가 창 재확인, 돌리기·연출·창 열림 중 건너뜀, 평점 CSV 5분 간격 재읽기 (js/app.js·rating.js, tests, README) — DoD 5/5, npm test 113 pass. 실기기 재확인은 배포 후
 - 2026-11-06 10:24 [pm] 026 실기기 확인: 사용자 휴대폰에서 탭 복귀 후 평가 창 정상 표시 — H-5 종료, 정비 H-1~H-7 전부 완료
+- 2026-11-26 10:55 [pm] 사이클 027 지시: AI 메뉴 추천 서버(server/, Open-Meteo 날씨 판정·업종 태그 캐시·claude -p 분류·Docker) — 설계 docs/design/2026-11-25/ai-menu-recommend-design.md
+
+- 2026-11-26 11:00 [codex] 사이클 027 구현 1차: AI 메뉴 추천 API·태그 저장소·Claude CLI·Docker — npm test 122 통과, 실제 날씨 및 시트 조회·CLI 분류 1회·Docker 빌드 확인
+- 2026-11-26 11:05 [pm] 사이클 027 수정 1/2 지시: 빈 분류 결과 재호출·캐시 즉시 반환(SWR)·태그 파일 손상 내성·테스트 보강 외 M-1~M-8
+- 2026-11-26 11:08 [codex] 사이클 027 수정 1/2: M-1~M-8 반영. npm test 135 통과, 실제 날씨·시트 GET 및 Docker 빌드·Compose 설정 확인.
+- 2026-11-26 11:12 [pm] 사이클 027 완료: AI 메뉴 추천 서버(server/: Open-Meteo 판정·업종 태그 캐시·claude -p 분류·SWR 캐시·Docker, docs/SETUP.md) — 수정 1/2, 적대검증 PASS·DoD 충족, npm test 135 pass. 배포는 사용자
+- 2026-11-26 11:13 [pm] 사이클 028 지시: AI 메뉴 추천 프론트(추천 줄·토글·배지·가이드, js/recommend.js) + 서버 regionWarnings 상한
+- 2026-11-26 11:17 [codex] 사이클 028 구현 1차: AI 메뉴 추천 프론트와 지역 로그 상한. npm test 143 통과, Chrome 가짜 데이터로 추천·지연·기존 흐름 검증, 스크린샷 9장.
+- 2026-11-26 11:22 [pm] 사이클 028 수정 1/2 지시: 늦은 응답이 회전·결과 중이면 업종 미적용, announce 알림, 가이드 표시 시 seen 저장, h23, 캐시 지역 깜빡임
+- 2026-11-26 11:24 [codex] 사이클 028 수정 1/2: N-1~N-5 반영. npm test 144 통과, Chrome 지연 응답·안내·가이드·캐시 전환 및 기존 흐름 확인.
+- 2026-11-26 11:26 [pm] 사이클 028 완료: AI 메뉴 추천 프론트(추천 줄·토글·꺼짐 배지·가이드·announce, js/recommend.js, 늦은 응답은 회전·결과 중 업종 미적용) + 서버 regionWarnings 상한 — 수정 1/2, 적대검증 PASS·DoD 충족, npm test 144 pass. RECOMMEND_URL은 빈 값(서버 배포 후 사용자 설정). 남은 사소: 교집합 0일 때 '업종 0개를 켰어요' 낭독

@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI 메뉴 추천 샘플</title>
+  <!-- 실제 앱 스타일을 그대로 쓴다. 이 파일은 docs/design/2026-11-25/ 에 있다. -->
+  <link rel="stylesheet" href="../../../css/style.css">
+  <style>
+    /* ---- 샘플 조작판 (실제 화면 아님) ---- */
+    .mock-panel { max-width: 480px; margin: 12px auto 0; padding: 12px 16px; border: 1px dashed var(--border);
+      border-radius: 12px; background: var(--surface); font-size: .85rem; color: var(--muted); }
+    .mock-panel b { color: var(--text); }
+    .mock-panel .row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 6px 0; }
+    .mock-panel .row > span { flex: 0 0 5.5em; }
+    .mock-panel button { padding: 3px 10px; border: 1px solid var(--border); border-radius: 999px;
+      background: var(--bg); color: var(--text); font-size: .8rem; cursor: pointer; }
+    .mock-panel button[aria-pressed='true'] { background: var(--text); color: var(--bg); }
+    .mock-note { margin: 8px 0 0; line-height: 1.5; }
+
+    /* ---- 새로 들어갈 화면 요소 (제안) ---- */
+    .weather-toggle { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 6px 14px;
+      border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--text);
+      font-size: .9rem; cursor: pointer; }
+    .weather-toggle .switch { position: relative; width: 30px; height: 18px; border-radius: 999px;
+      background: var(--border); transition: background .15s; }
+    .weather-toggle .switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px;
+      border-radius: 50%; background: #fff; transition: transform .15s; }
+    .weather-toggle[aria-pressed='true'] { border-color: var(--accent); background: var(--accent-soft); }
+    .weather-toggle[aria-pressed='true'] .switch { background: var(--accent); }
+    .weather-toggle[aria-pressed='true'] .switch::after { transform: translateX(12px); }
+    .weather-badge { padding: 2px 8px; border-radius: 999px; background: var(--star-bg); color: var(--star-gold);
+      font-size: .78rem; font-weight: 600; }
+    .weather-message { margin: -4px 0 12px calc(4.5em + 10px); padding: 8px 12px; border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0; background: var(--accent-soft); color: var(--text); font-size: .85rem; }
+    .weather-message small { display: block; margin-top: 2px; color: var(--muted); font-size: .75rem; }
+
+    .guide { position: fixed; right: 16px; bottom: 16px; z-index: 10; width: min(300px, calc(100vw - 32px));
+      padding: 14px 16px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface);
+      color: var(--text); box-shadow: 0 8px 24px rgba(0,0,0,.18); font-size: .85rem; }
+    .guide h2 { margin: 0 0 8px; font-size: .95rem; }
+    .guide ul { margin: 0 0 12px; padding-left: 1.1em; line-height: 1.6; }
+    .guide button { width: 100%; padding: 8px; border: none; border-radius: 8px; background: var(--accent);
+      color: #fff; font-weight: 700; cursor: pointer; }
+    .stage-mock { margin: 18px 0; height: 180px; border-radius: 16px; display: grid; place-items: center;
+      background: linear-gradient(135deg,#c9b8a6,#8a735e); color: #fff; font-size: 2rem; }
+  </style>
+</head>
+<body>
+  <div class="mock-panel">
+    <b>샘플 조작판</b> (실제 화면엔 없음)
+    <div class="row"><span>안</span>
+      <button data-plan="A" aria-pressed="true">(가) 꺼져도 배지</button>
+      <button data-plan="B">(나) 표시 없음</button></div>
+    <div class="row"><span>오늘 날씨</span>
+      <button data-weather="rain" aria-pressed="true">☔ 비</button>
+      <button data-weather="hot">🥵 더움</button>
+      <button data-weather="cold">🥶 추움</button>
+      <button data-weather="mild">🙂 무난</button></div>
+    <div class="row"><span>가이드</span>
+      <button id="reset-guide">처음 방문으로 되돌리기</button></div>
+    <p class="mock-note">아래 <b>🤖 AI 메뉴 추천</b> 버튼을 눌러 켜고 끄면서 비교해봐. 처음 켤 때만 오른쪽 아래에 가이드가 떠.</p>
+  </div>
+
+  <main class="app">
+    <div class="topbar">
+      <div class="modes"><button class="chip mode" aria-pressed="true">🍱 점심</button><button class="chip mode">☕ 카페</button></div>
+    </div>
+    <h1>🍱 오늘 점심 뭐 먹지? <span class="app-version">v2.4</span></h1>
+
+    <!-- 새 줄: AI 메뉴 추천 (제목과 지역 사이) -->
+    <div class="filter-row">
+      <span class="filter-label">추천</span>
+      <div class="chips" style="align-items:center">
+        <button id="weather-toggle" class="weather-toggle" aria-pressed="false">🤖 AI 메뉴 추천 <span class="switch" aria-hidden="true"></span></button>
+        <span id="weather-badge" class="weather-badge"></span>
+      </div>
+    </div>
+    <p id="weather-message" class="weather-message" hidden></p>
+
+    <div class="filter-row">
+      <span class="filter-label">지역</span>
+      <div class="chips"><button class="chip" aria-pressed="true">검암</button><button class="chip">을지로</button></div>
+    </div>
+    <div class="filter-row">
+      <span class="filter-label">그룹</span>
+      <div class="chips"><button class="chip" aria-pressed="true">전체</button><button class="chip">3층</button><button class="chip">4층</button></div>
+    </div>
+
+    <div class="filter-row">
+      <span class="filter-label">업종</span>
+      <div id="categories" class="chips"></div>
+    </div>
+
+    <div class="stage-mock" aria-hidden="true">🍴</div>
+    <div class="spin-row">
+      <label class="include-excluded"><input type="checkbox" disabled> 제외 포함</label>
+      <button class="spin" type="button">🎰 돌리기</button>
+    </div>
+  </main>
+
+  <aside id="guide" class="guide" hidden>
+    <h2>🤖 AI 메뉴 추천을 켰어요</h2>
+    <ul>
+      <li>AI가 오늘 날씨에 어울리는 업종을 골라 켜줘요</li>
+      <li>지역을 바꾸면 그 지역 날씨로 다시 골라요</li>
+      <li>업종 버튼은 언제든 직접 바꿀 수 있어요</li>
+    </ul>
+    <button id="guide-ok" type="button">확인</button>
+  </aside>
+
+  <script>
+    const CATS = ['한식','중식','일식','분식','돈까스','햄버거','국밥','찌개','해장','감자탕','칼국수','쌀국수','메밀','샐러드','포케','고기'];
+    const WEATHER = {
+      rain: { badge: '☔ 오늘 비', msg: '비 오는 날엔 국물이나 튀김 어때?', on: ['국밥','찌개','해장','감자탕','칼국수','쌀국수','중식','돈까스','고기'] },
+      hot:  { badge: '🥵 오늘 더움', msg: '더우니까 시원하고 가볍게 가자', on: ['메밀','샐러드','포케'] },
+      cold: { badge: '🥶 오늘 쌀쌀', msg: '쌀쌀하니까 뜨끈한 국물로', on: ['국밥','찌개','해장','감자탕','칼국수','쌀국수'] },
+      mild: { badge: '', msg: '오늘은 날씨 무난해요. 자유롭게 골라봐', on: [] },
+    };
+    const s = { plan: 'A', weather: 'rain', on: false, guideSeen: false, selected: new Set() };
+    const $ = (id) => document.getElementById(id);
+
+    function apply() { s.selected = new Set(s.on ? WEATHER[s.weather].on : []); }
+    function render() {
+      const w = WEATHER[s.weather];
+      $('weather-toggle').setAttribute('aria-pressed', String(s.on));
+      const badge = s.plan === 'A' && !s.on ? w.badge : '';
+      $('weather-badge').textContent = badge;
+      $('weather-badge').hidden = !badge;
+      $('weather-message').hidden = !s.on;
+      $('weather-message').innerHTML = s.on
+        ? `${w.msg}<small>🤖 AI 추천 · 검암 점심시간 날씨 기준 · 10:30 갱신</small>` : '';
+      $('categories').replaceChildren(
+        chip('전체', s.selected.size === 0, () => { s.selected.clear(); render(); }),
+        ...CATS.map((c) => chip(c, s.selected.has(c), () => {
+          s.selected.has(c) ? s.selected.delete(c) : s.selected.add(c); render(); })));
+    }
+    function chip(label, pressed, onClick) {
+      const b = document.createElement('button');
+      b.className = 'chip'; b.textContent = label; b.setAttribute('aria-pressed', String(pressed));
+      b.addEventListener('click', onClick); return b;
+    }
+
+    $('weather-toggle').addEventListener('click', () => {
+      s.on = !s.on; apply();
+      if (s.on && !s.guideSeen) $('guide').hidden = false;
+      render();
+    });
+    $('guide-ok').addEventListener('click', () => { s.guideSeen = true; $('guide').hidden = true; });
+    $('reset-guide').addEventListener('click', () => { s.guideSeen = false; s.on = false; $('guide').hidden = true; apply(); render(); });
+    for (const b of document.querySelectorAll('[data-plan]')) b.addEventListener('click', () => {
+      s.plan = b.dataset.plan; document.querySelectorAll('[data-plan]').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); render(); });
+    for (const b of document.querySelectorAll('[data-weather]')) b.addEventListener('click', () => {
+      s.weather = b.dataset.weather; document.querySelectorAll('[data-weather]').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); apply(); render(); });
+    render();
+  </script>
+</body>
+</html>

@@ -12,7 +12,7 @@
       if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
     } catch { /* 저장소를 못 쓰면 시스템 설정을 따른다 */ }
   </script>
-  <link rel="stylesheet" href="css/style.css?v=419ee43b2143">
+  <link rel="stylesheet" href="css/style.css?v=032cfc5d7115">
 </head>
 <body>
   <main class="app">
@@ -21,6 +21,17 @@
       <div id="theme" class="theme-switch" role="group" aria-label="화면 테마"></div>
     </div>
     <h1 id="heading"><span id="heading-text">🍱 오늘 점심 뭐 먹지?</span> <span id="app-version" class="app-version" hidden></span></h1>
+
+    <div id="recommend-row" class="filter-row" hidden>
+      <span class="filter-label" id="recommend-label">추천</span>
+      <div class="chips recommend-chips" role="group" aria-labelledby="recommend-label">
+        <button id="recommend-toggle" type="button" class="recommend-toggle" aria-pressed="false">🤖 AI 메뉴 추천 <span class="recommend-switch" aria-hidden="true"></span></button>
+        <span id="recommend-badge" class="recommend-badge" hidden></span>
+      </div>
+    </div>
+    <p id="recommend-message" class="recommend-message" hidden>
+      <span id="recommend-summary"></span><small id="recommend-details"></small>
+    </p>
 
     <div class="filter-row" hidden>
       <span class="filter-label" id="regions-label">지역</span>
@@ -74,6 +85,15 @@
       <a id="about-link" class="about-link" target="_blank" rel="noopener" hidden>🐙 GitHub에서 소개 보기</a>
     </footer>
   </main>
+  <aside id="recommend-guide" class="recommend-guide" aria-labelledby="recommend-guide-title" hidden>
+    <h2 id="recommend-guide-title">🤖 AI 메뉴 추천을 켰어요</h2>
+    <ul>
+      <li>AI가 오늘 날씨에 어울리는 업종을 골라 켜줘요</li>
+      <li>지역을 바꾸면 그 지역 날씨로 다시 골라요</li>
+      <li>업종 버튼은 언제든 직접 바꿀 수 있어요</li>
+    </ul>
+    <button id="recommend-guide-ok" type="button">확인</button>
+  </aside>
   <dialog id="rating-dialog" class="rating-dialog" aria-labelledby="rating-title"></dialog>
   <dialog id="exclude-dialog" class="rating-dialog" aria-labelledby="exclude-title"></dialog>
   <dialog id="reveal-dialog" class="reveal-dialog" aria-label="1순위 공개 연출" tabindex="-1"></dialog>
@@ -96,6 +116,6 @@
       });
     })();
   </script>
-  <script type="module" src="js/app.js?v=419ee43b2143" onerror="window.__lunchStartFailed()"></script>
+  <script type="module" src="js/app.js?v=032cfc5d7115" onerror="window.__lunchStartFailed()"></script>
 </body>
 </html>
