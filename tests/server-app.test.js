@@ -414,7 +414,7 @@ test('시트에서 사라진 업종을 걸러내고 전부 사라지면 새 추�
   await setImmediate();
   const partial = await get();
   assert.deepEqual(partial.categories, ['돈까스']);
-  assert.equal(partial.message, '비 오는 날엔 국물이나 튀김 어때?');
+  assert.equal(partial.message, '비 오는 날엔 국물이나 튀김 어때요?');
   assert.equal(calls, 1);
   fixture.setCsv(CSV.split('\n').filter((line) => !/국밥|돈까스/.test(line)).join('\n'));
   fixture.tick(10 * MINUTE);

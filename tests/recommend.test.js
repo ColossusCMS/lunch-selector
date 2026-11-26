@@ -6,7 +6,7 @@ import {
 
 const payload = {
   ok: true, region: '검암', categories: ['국밥'], weather: { badge: '☔ 오늘 비', conditions: ['rain'] },
-  message: '비 오는 날엔 국물이나 튀김 어때?', updatedAt: '2026-11-26T01:30:00.000Z', extra: true,
+  message: '비 오는 날엔 국물이나 튀김 어때요?', updatedAt: '2026-11-26T01:30:00.000Z', extra: true,
 };
 const expected = {
   region: '검암', categories: ['국밥'], badge: '☔ 오늘 비',

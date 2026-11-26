@@ -18,7 +18,7 @@ test('날씨 경계값과 무난한 날 문구', () => {
   }
   const mild = evaluateWeather([sample()]);
   assert.equal(mild.weather.badge, '');
-  assert.equal(mild.message, '오늘은 날씨 무난해요. 자유롭게 골라봐');
+  assert.equal(mild.message, '오늘은 날씨 무난해요. 자유롭게 골라보세요');
 });
 
 test('눈 시간대가 포함되면 눈 배지를 표시하고 겹친 조건의 태그를 합친다', () => {
@@ -26,7 +26,7 @@ test('눈 시간대가 포함되면 눈 배지를 표시하고 겹친 조건의 
     const result = evaluateWeather([sample({ code, temperature: 5 }), sample({ temperature: 28 })]);
     assert.deepEqual(result.weather.conditions, ['rain', 'hot', 'cold']);
     assert.equal(result.weather.badge, '❄️ 오늘 눈');
-    assert.equal(result.message, '비 오는 날엔 국물이나 튀김 어때?');
+    assert.equal(result.message, '비 오는 날엔 국물이나 튀김 어때요?');
     assert.deepEqual(result.tags, new Set(['warm_soup', 'greasy', 'cold', 'light']));
   }
 });
