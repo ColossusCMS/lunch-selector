@@ -1,10 +1,10 @@
 // 시트 연결 설정. 처음 한 번만 고치면 된다.
 
 // 릴리스 때 화면에 표시할 앱 버전은 여기서 갱신한다.
-export const APP_VERSION = 'v2.3';
+export const APP_VERSION = 'v2.4';
 
 // 추천 서버의 HTTPS 주소. 비워두면 추천 줄을 숨긴다.
-export const RECOMMEND_URL = '';
+export const RECOMMEND_URL = 'https://colossuskim.duckdns.org:29187';
 export const RECOMMEND_MODE = 'lunch';
 
 export const ABOUT_URL = 'https://github.com/ColossusCMS/lunch-selector';

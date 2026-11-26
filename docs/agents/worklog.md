@@ -74,3 +74,4 @@
 - 2026-11-26 11:22 [pm] 사이클 028 수정 1/2 지시: 늦은 응답이 회전·결과 중이면 업종 미적용, announce 알림, 가이드 표시 시 seen 저장, h23, 캐시 지역 깜빡임
 - 2026-11-26 11:24 [codex] 사이클 028 수정 1/2: N-1~N-5 반영. npm test 144 통과, Chrome 지연 응답·안내·가이드·캐시 전환 및 기존 흐름 확인.
 - 2026-11-26 11:26 [pm] 사이클 028 완료: AI 메뉴 추천 프론트(추천 줄·토글·꺼짐 배지·가이드·announce, js/recommend.js, 늦은 응답은 회전·결과 중 업종 미적용) + 서버 regionWarnings 상한 — 수정 1/2, 적대검증 PASS·DoD 충족, npm test 144 pass. RECOMMEND_URL은 빈 값(서버 배포 후 사용자 설정). 남은 사소: 교집합 0일 때 '업종 0개를 켰어요' 낭독
+- 2026-11-26 14:16 [pm] v2.4 준비: RECOMMEND_URL=https://colossuskim.duckdns.org:29187 설정, APP_VERSION·README 배지 v2.4, npm run bump(169a5db0ebac), npm test 144 pass

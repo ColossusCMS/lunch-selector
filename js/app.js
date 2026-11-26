@@ -1,21 +1,21 @@
 // 화면 초기화와 이벤트 처리.
 
-import { APP_VERSION, ABOUT_URL, modes, initialMode, dataUrl, editUrl, KAKAO_MAP_KEY, RATING, ratingEnabled, RECOMMEND_URL, RECOMMEND_MODE } from './config.js?v=032cfc5d7115';
-import { loadStores, fetchCsvRows, createRequestCounter } from './data.js?v=032cfc5d7115';
-import { listRegions, listGroups, listCategories, filterCandidates, closedToday, pickTop } from './select.js?v=032cfc5d7115';
-import { burstConfetti, reducedMotion } from './animation.js?v=032cfc5d7115';
-import { playFirstPick, showFirstPick } from './reveal.js?v=032cfc5d7115';
-import { canReplay } from './reveal-plan.js?v=032cfc5d7115';
-import { createSound } from './sound.js?v=032cfc5d7115';
-import { createMap, kakaoLink } from './map.js?v=032cfc5d7115';
-import { THEME_KEY, THEMES, parseTheme, applyTheme } from './theme.js?v=032cfc5d7115';
+import { APP_VERSION, ABOUT_URL, modes, initialMode, dataUrl, editUrl, KAKAO_MAP_KEY, RATING, ratingEnabled, RECOMMEND_URL, RECOMMEND_MODE } from './config.js?v=169a5db0ebac';
+import { loadStores, fetchCsvRows, createRequestCounter } from './data.js?v=169a5db0ebac';
+import { listRegions, listGroups, listCategories, filterCandidates, closedToday, pickTop } from './select.js?v=169a5db0ebac';
+import { burstConfetti, reducedMotion } from './animation.js?v=169a5db0ebac';
+import { playFirstPick, showFirstPick } from './reveal.js?v=169a5db0ebac';
+import { canReplay } from './reveal-plan.js?v=169a5db0ebac';
+import { createSound } from './sound.js?v=169a5db0ebac';
+import { createMap, kakaoLink } from './map.js?v=169a5db0ebac';
+import { THEME_KEY, THEMES, parseTheme, applyTheme } from './theme.js?v=169a5db0ebac';
 import { PICK_KEY, ratingKey, aggregateRatings, cardTier, formatStatLine, parsePick, pickStatus,
   buildRatingBody, applySendResults, dropIfSame, starLabel, ratingModeLabel,
-  shouldCheckRatings, shouldRefreshRatings } from './rating.js?v=032cfc5d7115';
+  shouldCheckRatings, shouldRefreshRatings } from './rating.js?v=169a5db0ebac';
 
-import { EXCLUDE_KEY, EXCLUDE_DAYS, readExcluded, withoutExcluded } from './exclude.js?v=032cfc5d7115';
+import { EXCLUDE_KEY, EXCLUDE_DAYS, readExcluded, withoutExcluded } from './exclude.js?v=169a5db0ebac';
 
-import { buildRecommendUrl, fetchRecommendation, formatRecommendationAnnouncement, formatUpdatedAt, pickVisibleCategories } from './recommend.js?v=032cfc5d7115';
+import { buildRecommendUrl, fetchRecommendation, formatRecommendationAnnouncement, formatUpdatedAt, pickVisibleCategories } from './recommend.js?v=169a5db0ebac';
 
 const RECOMMEND_KEY = 'lunch-selector:recommend';
 const RECOMMEND_GUIDE_KEY = 'lunch-selector:recommend-guide-seen';
@@ -65,9 +65,9 @@ const els = {
 };
 
 const state = {
-  /** @type {import('./config.js?v=032cfc5d7115').Mode} */
+  /** @type {import('./config.js?v=169a5db0ebac').Mode} */
   mode: null,
-  /** @type {import('./stores.js?v=032cfc5d7115').Store[]} */
+  /** @type {import('./stores.js?v=169a5db0ebac').Store[]} */
   stores: [],
   /** @type {string | null} null이면 지역 미선택, ''는 하위 호환 지역 */
   region: null,

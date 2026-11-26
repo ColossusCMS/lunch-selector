@@ -1,5 +1,5 @@
 // 룰렛 연출: 감속 회전, 폭죽, 순차 페이드 인.
-import { rouletteRows } from './reveal-plan.js?v=032cfc5d7115';
+import { rouletteRows } from './reveal-plan.js?v=169a5db0ebac';
 
 const CONFETTI_COLORS = ['#e8590c', '#2f9e44', '#fcc419', '#4c6ef5', '#be4bdb', '#f03e3e'];
 
