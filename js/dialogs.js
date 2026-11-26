@@ -1,11 +1,11 @@
-import { buildFeedbackBody } from './feedback.js?v=a5dc0fabb610';
-import { starLabel } from './rating.js?v=a5dc0fabb610';
+import { buildFeedbackBody, feedbackStarLabel } from './feedback.js?v=76b4662bb704';
+import { starLabel } from './rating.js?v=76b4662bb704';
 
 const element = (tag, className, textContent = '') =>
   Object.assign(document.createElement(tag), { className, textContent });
 const button = (text, className = '') => Object.assign(element('button', className, text), { type: 'button' });
 
-export function createStarControl(label, choice, onChange) {
+export function createStarControl(label, choice, onChange, labelFor = starLabel) {
   const control = element('div', 'rating-control');
   const options = element('div', 'rating-options');
   options.setAttribute('role', 'group');
@@ -25,7 +25,7 @@ export function createStarControl(label, choice, onChange) {
         item.firstElementChild.textContent = position < choice.stars ? '★' : '☆';
         item.setAttribute('aria-pressed', String(choice.stars === position + 1));
       });
-      status.textContent = starLabel(choice.stars);
+      status.textContent = labelFor(choice.stars);
       if (choice.stars !== null) {
         void options.offsetWidth; // 연속 클릭도 별 애니메이션을 처음부터 실행한다.
         stars.slice(0, choice.stars).forEach((item) => item.classList.add('star-pop'));
@@ -96,7 +96,7 @@ export function showFeedback(dialog, config, context) {
   const stars = [];
   const rows = questions.map(([key, question]) => {
     const row = element('div', 'rating-row feedback-row');
-    const { control, stars: options } = createStarControl(question, choices[key], syncSend);
+    const { control, stars: options } = createStarControl(question, choices[key], syncSend, feedbackStarLabel);
     stars.push(...options);
     row.append(element('div', 'rating-name', question), control);
     return row;

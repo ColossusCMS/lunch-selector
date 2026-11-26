@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { FEEDBACK, feedbackEnabled } from '../js/config.js';
-import { buildFeedbackBody, feedbackContext, formatWeatherSummary, shouldAutoPrompt } from '../js/feedback.js';
+import { buildFeedbackBody, feedbackContext, feedbackStarLabel, formatWeatherSummary, shouldAutoPrompt } from '../js/feedback.js';
+import { starLabel } from '../js/rating.js';
 
 test('피드백 설정은 폼과 9개 entry가 모두 있어야 활성화된다', () => {
   assert.equal(feedbackEnabled(FEEDBACK), true);
@@ -50,4 +51,12 @@ test('피드백은 지역 응답과 마지막 당첨 가게를 조립하고 끄�
   assert.deepEqual(feedbackContext({ version: 'v2.5', recommendOn: true }), {
     region: '', source: '', categories: '', weather: '', store: '', version: 'v2.5',
   });
+});
+
+test('피드백 별 문구는 맛 평가 문구와 따로 쓴다', () => {
+  assert.deepEqual([1, 2, 3, 4, 5].map(feedbackStarLabel), ['별로예요', '아쉬워요', '보통이에요', '좋아요', '최고예요']);
+  assert.equal(feedbackStarLabel(null), '');
+  assert.equal(feedbackStarLabel(0), '');
+  assert.equal(feedbackStarLabel(6), '');
+  assert.equal(starLabel(4), '맛있어요');
 });

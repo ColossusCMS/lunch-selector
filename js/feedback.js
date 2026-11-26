@@ -2,6 +2,13 @@ export const FEEDBACK_FIELDS = [
   'feature', 'result', 'comment', 'region', 'weather', 'categories', 'source', 'store', 'version',
 ];
 
+const FEEDBACK_STAR_LABELS = ['별로예요', '아쉬워요', '보통이에요', '좋아요', '최고예요'];
+
+/** 피드백 모달의 별 아래 문구. 별점 카드(맛 평가)의 starLabel과 따로 둔다. */
+export function feedbackStarLabel(n) {
+  return Number.isInteger(n) && n >= 1 && n <= 5 ? FEEDBACK_STAR_LABELS[n - 1] : '';
+}
+
 export function buildFeedbackBody(entries, data) {
   const comment = [...(data.comment ?? '').trim()].slice(0, 500).join('');
   return new URLSearchParams(FEEDBACK_FIELDS.map((key) => [
