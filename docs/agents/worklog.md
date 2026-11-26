@@ -88,3 +88,6 @@
 - 2026-11-26 16:00 [pm] 사이클 030 완료: 공지 팝업·AI 추천 피드백·출처 표시·v2.5 — 수정 1/2(Q-1~Q-6) PM 확인, reviewer Must 없음·supervisor 적대검증 PASS·DoD 충족, npm test 177 pass
 - 2026-11-26 16:08 [pm] 서비스 문구 존댓말화: AI 추천 프롬프트(해요체, 예시 교체)와 규칙 문구 4종, 관련 테스트. npm test 177 pass
 - 2026-11-26 16:12 [pm] 피드백 모달 별 문구 분리(feedbackStarLabel: 별로예요·아쉬워요·보통이에요·좋아요·최고예요), 별점 카드 문구 유지. npm run bump(76b4662bb704), npm test 178 pass
+- 2026-11-26 16:32 [pm] SETUP 피드백 절에 폼 응답자 범위·시크릿 창 확인법 추가. 사이클 031 지시: README v2.5 반영 + 새 스크린샷
+- 2026-11-26 16:34 [codex] 사이클 031 구현: v2.5 README 개편, 실데이터 모바일 화면 3장, 상대 경로 13개 및 Mermaid 2개 검증, npm test 178 통과.
+- 2026-11-26 16:35 [pm] 사이클 031 완료: README v2.5 반영 + 스크린샷 3장(ai-recommend·notice·feedback), PM 검토(이미지·링크·사실 대조), npm test 178 pass

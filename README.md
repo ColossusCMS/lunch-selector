@@ -5,12 +5,13 @@
 **"아무거나"가 제일 어려운 사람들을 위한 점심·카페 룰렛**
 
 오늘 쉬는 가게는 알아서 빼고, 1·2·3순위를 **가챠 카드**로 뽑아 지도에 보여드려요.<br>
-다녀온 곳에 남긴 동료들의 별점이 카드 등급이 돼요.
+다녀온 곳에 남긴 동료들의 별점이 카드 등급이 돼요.<br>
+AI 메뉴 추천을 켜면 오늘 날씨에 어울리는 업종을 골라드려요.
 
 [![Live](https://img.shields.io/badge/Live-바로_써보기-e8590c?style=for-the-badge)](https://colossuscms.github.io/lunch-selector/)
 
 ![Vanilla JS](https://img.shields.io/badge/Vanilla_JS-ES_Modules-f7df1e?logo=javascript&logoColor=black)
-![No Backend](https://img.shields.io/badge/Backend-없음-2f9e44)
+![Backend 선택 — AI 추천](https://img.shields.io/badge/Backend-%EC%84%A0%ED%83%9D_%28AI_%EC%B6%94%EC%B2%9C%29-2f9e44)
 ![No Build](https://img.shields.io/badge/Build-없음-2f9e44)
 ![Dependencies](https://img.shields.io/badge/dependencies-0-2f9e44)
 ![Tests](https://img.shields.io/badge/tests-178_passing-2f9e44)
@@ -43,8 +44,8 @@
 | 🚦 **혼잡도 표시** | 모든 결과 카드에 여유·보통·혼잡을 표시해 다음 후보로 갈지 판단할 수 있어요. 추첨 확률에는 영향을 주지 않아요. |
 | 📅 **정기휴무 자동 제외** | 시트에 `월`, `토,일`, `토요일 일요일`처럼 편하게 적어두면 오늘 쉬는 곳은 후보에서 빠지고 화면 아래에 따로 알려줘요. |
 | 👥 **지역 · 그룹 · 업종 필터** | 먼저 지역을 고르고 3층/4층처럼 그룹을 고르거나 [전체]로 볼 수 있고, 업종은 여러 개 골라 OR로 걸러요. 한 가게가 여러 그룹·업종에 속할 수 있어요. |
-| 🤖 **AI 메뉴 추천** | 추천 서버를 연결하면 점심시간 날씨에 어울리는 업종 필터를 자동으로 켤 수 있어요. |
-| 📣 **공지 · AI 추천 피드백** | 접속하면 시트에서 관리하는 공지가 뜨고, 화면 아래에서 AI 추천에 대한 별점과 의견을 보낼 수 있어요. |
+| 🤖 **AI 메뉴 추천** | 제목 아래 `추천` 줄에서 켤 수 있고, 기본값은 꺼짐이에요. AI는 지역별 점심시간 날씨를 보고 업종 2~6개와 한 줄 문구를 골라요. 무난한 날에도 추천하고, 메뉴는 날마다 조금씩 달라질 수 있어요. AI 결과가 준비되지 않거나 실패하면 날씨 규칙으로 답하고, 안내 아래 작은 글씨에 출처를 표시해요. 추천을 꺼둬도 비·더위·추위에는 날씨 배지가 보이고, 업종은 언제든 직접 바꿀 수 있어요. |
+| 📣 **공지 · AI 추천 피드백** | 시트에서 관리하는 공지를 접속할 때 차례로 보여드려요. 공지마다 `오늘 하루 안 보기`와 `다시 띄우지 않기`를 고를 수 있어요. AI 추천을 켜고 처음 룰렛 결과를 보면 피드백 창이 한 번 뜨고, 이후에는 하단 `AI 추천 피드백` 버튼에서 별점과 의견을 보낼 수 있어요. |
 | 🗺️ **지도에 1·2·3순위 표시** | 주소를 좌표로 바꿔 순위 핀을 찍고, 세 곳이 한 화면에 들어오게 맞춰요. 카드마다 카카오맵 바로가기가 있어 휴대폰에서 바로 길찾기로 이어져요. |
 | ☕ **점심 ↔ 카페 전환** | 같은 양식의 시트 탭만 하나 더 만들면, 버튼 하나로 "오늘 카페 어디 가지?"가 돼요. |
 | ✏️ **누구나 고치는 목록** | 가게 목록은 구글 시트예요. 개발자가 아니어도 시트만 고치면 몇 분 안에 반영돼요. |
@@ -82,9 +83,22 @@
 
 <img src="docs/images/rating.png" alt="가게명 왼쪽·별점 오른쪽 배치의 평가 창에서 금복돈육식당에 4점을 선택한 모습" width="320">
 
+<table>
+  <tr>
+    <th>AI 메뉴 추천</th>
+    <th>접속 공지</th>
+    <th>AI 추천 피드백</th>
+  </tr>
+  <tr>
+    <td><img src="docs/images/ai-recommend.png" alt="점심 화면에서 AI 추천을 켜 안내 문구와 서울 시각 갱신 표시, 자동 선택된 업종 칩이 보이는 모습" width="240"></td>
+    <td><img src="docs/images/notice.png" alt="점심 화면 위에 열린 AI 메뉴 추천 베타 공지와 오늘 하루 안 보기 및 다시 띄우지 않기 버튼" width="240"></td>
+    <td><img src="docs/images/feedback.png" alt="AI 추천 기능과 결과에 각각 별을 고르고 별점 설명이 표시된 피드백 창" width="240"></td>
+  </tr>
+</table>
+
 ## ⚙️ 어떻게 동작하나요
 
-서버가 하나도 없어요. 정적 파일은 GitHub Pages가, 데이터는 구글 시트가, 지도는 카카오가 맡고 나머지는 전부 브라우저에서 일어나요.
+룰렛과 필터는 별도 서버 없이 브라우저에서 돌아가요. 정적 파일은 GitHub Pages가, 데이터는 구글 시트가, 지도는 카카오가 맡아요. AI 메뉴 추천을 사용하려면 리눅스 서버에 선택형 추천 서버를 띄워요. Docker에서 Node 22의 내장 HTTP 서버로 실행하고, Open-Meteo와 Claude Code CLI를 사용해요. 외부 npm 패키지는 필요 없어요.
 
 ```mermaid
 flowchart LR
@@ -92,6 +106,7 @@ flowchart LR
         T1["🍱 점심메뉴 탭"]
         T2["☕ 다과(커피)메뉴 탭"]
         T3["⭐ 평점 탭 (숨김)"]
+        T4["📣 공지관리 탭"]
     end
     GF["Google Form"] -- "응답 기록" --> T3
     Google -- "웹에 게시 (CSV)" --> B
@@ -108,11 +123,40 @@ flowchart LR
         A -. "다음 접속 때 평가 창" .-> V["별점"]
         A -. "🙅 제외하기" .-> L[("기기 저장<br/>localStorage · 7일")]
         L --> X
+        NP["공지 팝업<br/>notice.js"]
+        FB["AI 추천 피드백<br/>feedback.js"]
     end
 
+    T4 -- "웹에 게시 (CSV)" --> NP
+    FB -- "no-cors POST" --> GFB["피드백 Google Form"]
     V -- "no-cors POST" --> GF
     R -- "주소" --> K["Kakao Maps SDK<br/>지오코딩 · 지도"]
     K -- "좌표 · 핀" --> A
+```
+
+브라우저는 지역이 정해지면 추천 API에 날씨와 업종을 요청해요. 서버는 해당 지역의 결과를 먼저 메모리에서 찾고, 결과가 준비되기 전에는 날씨 규칙으로 바로 답해요.
+
+```mermaid
+flowchart LR
+    Browser["브라우저"] -- "GET /recommend" --> API
+    OpenMeteo["Open-Meteo"] --> Weather
+    Lunch["점심 시트 CSV"] --> Categories
+    subgraph Server["선택형 AI 추천 서버"]
+        Weather["점심시간 날씨 판정"]
+        Categories["지역 업종 목록"]
+        API["추천 응답"]
+        AI["Claude Code CLI<br/>업종 · 문구 선택"]
+        Cache[("메모리 캐시<br/>지역 · 날짜 · 날씨 분류")]
+        Rule["날씨 규칙 추천"]
+        Weather --> AI
+        Categories --> AI
+        Weather --> Rule
+        Categories --> Rule
+        AI --> Cache
+        Cache -- "AI 결과" --> API
+        Rule -- "AI 결과가 준비되기 전" --> API
+    end
+    API -- "출처 · 업종 · 안내 문구" --> Browser
 ```
 
 ## 🧠 고민했던 것들
@@ -120,7 +164,7 @@ flowchart LR
 <details>
 <summary><b>다녀온 가게를 백엔드 없이 빼려면</b></summary>
 
-"지난주에 간 데가 또 나왔어요"라는 의견을 받았어요. 서버가 있으면 방문 기록을 모으면 되지만, 이 사이트에는 서버도 로그인도 없어요.
+"지난주에 간 데가 또 나왔어요"라는 의견을 받았어요. 방문 기록을 서버에 모으려면 누가 어느 가게에 갔는지 관리해야 해요. 룰렛의 방문 제외 기능은 로그인 없이 제공하고 싶었어요.
 
 - 보통 **한 사람이 돌려서 팀에 공유**하니까, 돌리는 사람의 기기에만 기록이 있어도 충분했어요. 그래서 기록은 **브라우저 저장소(localStorage)** 에 두고, 기기 사이 동기화는 하지 않아요.
 - 실제로 갔는지 확인할 방법은 없어요. 목표를 "확실히 빼기"가 아니라 **"최근 간 곳이 웬만하면 안 나오기"** 로 잡고 사용자 입력을 믿기로 했어요.
@@ -199,6 +243,34 @@ flowchart LR
 - 뽑는 순간엔 아직 먹어보지 않았으니 평가가 의미 없어요. 마지막 추천을 기기에 기억해 두었다가 **30분이 지난 뒤 다시 들어왔을 때**, 달력 기준 3일 이내의 추천만 물어봐요.
 - 로그인이 없으니 중복은 "한 번 답한 추천은 다시 묻지 않는다"로 막아요. 여러 곳을 보내다 일부만 실패하면 실패한 가게만 다음에 다시 물어요.
 - 설정 값이 하나라도 비어 있으면 평가 기능 전체가 조용히 꺼져요. 폼을 만들기 전에 배포해도 안전해요.
+- 피드백 폼이 로그인한 응답자만 받도록 설정돼서, 화면에서는 성공으로 보였지만 실제 응답이 쌓이지 않은 적이 있어요. 폼을 게시한 뒤 응답자 범위를 확인해야 해요. [설치·운영 가이드](docs/SETUP.md#ai-추천-피드백)
+
+</details>
+
+<details>
+<summary><b>“AI 추천”이 정말 AI가 고르게 하려면</b></summary>
+
+v2.4에서는 AI가 업종의 성격을 분류했어요. 날씨에 따라 어떤 업종을 켤지는 규칙이 결정했기 때문에 사실상 규칙 기반이라는 의견을 받았어요.
+
+v2.5에서는 AI가 업종과 한 줄 문구를 직접 골라요. 날짜에 따라 조금씩 다른 결과를 일부러 허용했고, 무난한 날도 추천해요. 규칙은 AI 결과가 준비되지 않았을 때 대체 추천에 쓰고, 비 오거나 추운 날의 냉메밀처럼 차갑기만 한 업종이나 더운 날의 따뜻한 국물 업종을 추천에서 빼는 데도 써요.
+
+</details>
+
+<details>
+<summary><b>AI를 언제, 몇 번 부를까</b></summary>
+
+기기마다 AI를 부르면 동료들이 같은 날에도 서로 다른 추천을 받고 호출이 늘어요. 그래서 추천은 서버에서 지역·서울 날짜·날씨 분류를 기준으로 캐시해요. 같은 날 같은 지역에서 날씨 분류가 같으면 모두 같은 추천을 봐요. 별도의 API 키 발급 없이 서버에 로그인한 Claude Code CLI를 사용해요.
+
+- 브라우저는 3초까지 응답을 기다려요. 서버는 AI를 기다리지 않고 준비된 결과나 날씨 규칙을 바로 반환해요. 새 AI 추천은 백그라운드에서 준비해요.
+- 실패한 작업은 30분 뒤 다시 시도할 수 있고, 같은 지역·날짜·날씨 분류 조합은 하루 최대 3번만 시도해요.
+- 프롬프트의 시트 데이터는 업종 이름만 전달해요. CLI의 도구를 끄고, 결과 업종은 보낸 목록과 대조하고, 안내 문구는 길이를 제한해요.
+
+</details>
+
+<details>
+<summary><b>공지를 관리자 화면 없이 띄우려면</b></summary>
+
+별도의 관리자 화면이나 인증 없이도 공지 내용을 편집할 수 있도록 구글 시트의 `공지관리` 탭을 사용해요. 체크박스로 노출 여부를 정하고, 시작일과 종료일로 기간을 지정해요. 공지 본문은 브라우저에서 글자로 표시해요.
 
 </details>
 
@@ -232,6 +304,7 @@ flowchart LR
 | 화면 | HTML · CSS (커스텀 프로퍼티로 라이트/다크 토큰) · Vanilla JS ES Modules |
 | 데이터 | Google Sheets "웹에 게시" CSV, 직접 작성한 RFC 4180 CSV 파서, 평가 기록은 Google Forms |
 | 지도 | Kakao Maps JavaScript SDK (지도 · 주소 검색) |
+| AI 추천 서버 | Node 22 `node:http` (외부 npm 패키지 없음) · Open-Meteo · Claude Code CLI (`claude -p`) · Docker |
 | 테스트 | Node 내장 테스트 러너 `node:test` (외부 의존성 0) |
 | 배포 | GitHub Pages (빌드 단계 없음) |
 
@@ -242,7 +315,7 @@ lunch-selector/
 ├─ index.html          # 한 페이지가 전부
 ├─ css/style.css       # 테마 토큰, 칩, 가챠 카드·등급, 평가 창, 폭죽, 지도 핀
 ├─ js/
-│  ├─ config.js        # 시트 주소 · 모드(탭) · 카카오 키 · 평가 폼 설정
+│  ├─ config.js        # 시트 주소 · 모드 · 카카오 키 · 추천·공지·폼 설정
 │  ├─ csv.js           # CSV 파서
 │  ├─ stores.js        # 행 → 가게 정규화 (휴무·다중 값 파싱)
 │  ├─ data.js          # 불러오기 (10초 제한 시간, 최신 요청만 반영)
@@ -255,7 +328,26 @@ lunch-selector/
 │  ├─ sound.js         # Web Audio 합성 효과음 · 재생/정지
 │  ├─ map.js           # 지오코딩 캐시 · 지도 핀 · 카카오맵 링크
 │  ├─ theme.js         # 시스템 · 라이트 · 다크 테마
+│  ├─ recommend.js     # 추천 API 응답 · 시간 표시 · 업종 교집합
+│  ├─ notice.js        # 공지 CSV · 표시 기간 · 숨김 설정
+│  ├─ feedback.js      # AI 추천 피드백 본문과 맥락
+│  ├─ dialogs.js       # 공지·피드백 창 및 공용 별점 버튼
 │  └─ app.js           # 화면 상태와 이벤트
+├─ server/             # 선택형 AI 추천 서버
+│  ├─ index.js         # 설정 읽기 · HTTP 서버 시작 · 추천 미리 준비
+│  ├─ app.js           # /recommend · /health · CLI 대기열
+│  ├─ weather.js       # Open-Meteo 조회 · 점심시간 날씨 캐시
+│  ├─ sheet.js         # 점심 시트 CSV · 지역별 업종 캐시
+│  ├─ cache.js         # 갱신 중 기존 값 재사용 · 실패 후 재시도
+│  ├─ rules.js         # 날씨 분류 · 배지 · 규칙 추천
+│  ├─ tags.js          # 업종 태그 검사 · 파일 저장
+│  ├─ recommender.js   # 추천 프롬프트 · 결과 검증 · 날씨 안전장치
+│  ├─ pick-jobs.js     # 추천 결과 캐시 · 작업 상태 · 재시도
+│  ├─ classifier.js    # Claude Code CLI 실행
+│  ├─ config.example.json # 서버 설정 예제
+│  ├─ Dockerfile       # Node 22 · Claude Code CLI 이미지
+│  ├─ compose.example.yml # 컨테이너 · 볼륨 · 상태 확인 예제
+│  └─ data/category-tags.json # 초기 업종 태그
 ├─ tests/              # node:test 단위 테스트 178개
 └─ docs/SETUP.md       # 설치·운영 가이드
 ```
@@ -268,7 +360,7 @@ npm test   # Node 22+
 
 ## 🚀 직접 써보기
 
-시트를 만들고 연결하는 방법, 카카오 키 발급, 별점(구글 폼) 켜기, 로컬 실행, GitHub Pages 배포는 **[설치·운영 가이드](docs/SETUP.md)**에 정리해 뒀어요.
+시트 연결, 카카오 키 발급, 별점 폼, 로컬 실행, GitHub Pages 배포 방법을 정리해 뒀어요. AI 추천 서버는 선택 사항이에요. 추천 서버와 공지·피드백 설정 방법도 같은 문서에서 볼 수 있어요. **[설치·운영 가이드](docs/SETUP.md)**
 
 <div align="center">
 <br>
