@@ -12,7 +12,7 @@
       if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
     } catch { /* 저장소를 못 쓰면 시스템 설정을 따른다 */ }
   </script>
-  <link rel="stylesheet" href="css/style.css?v=76b4662bb704">
+  <link rel="stylesheet" href="css/style.css?v=d8f5ec889ac9">
 </head>
 <body>
   <main class="app">
@@ -25,7 +25,7 @@
     <div id="recommend-row" class="filter-row" hidden>
       <span class="filter-label" id="recommend-label">추천</span>
       <div class="chips recommend-chips" role="group" aria-labelledby="recommend-label">
-        <button id="recommend-toggle" type="button" class="recommend-toggle" aria-pressed="false">🤖 AI 메뉴 추천 <span class="recommend-switch" aria-hidden="true"></span></button>
+        <button id="recommend-toggle" type="button" class="recommend-toggle" aria-pressed="false">🤖 AI 메뉴 추천 <span class="beta-badge">BETA</span> <span class="recommend-switch" aria-hidden="true"></span></button>
         <span id="recommend-badge" class="recommend-badge" hidden></span>
       </div>
     </div>
@@ -119,6 +119,6 @@
       });
     })();
   </script>
-  <script type="module" src="js/app.js?v=76b4662bb704" onerror="window.__lunchStartFailed()"></script>
+  <script type="module" src="js/app.js?v=d8f5ec889ac9" onerror="window.__lunchStartFailed()"></script>
 </body>
 </html>

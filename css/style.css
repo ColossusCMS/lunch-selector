@@ -162,6 +162,8 @@ h1 {
 .recommend-guide button { width: 100%; padding: 8px; border: none; border-radius: 8px; background: var(--accent);
   color: #fff; font-weight: 700; cursor: pointer; }
 .recommend-toggle:disabled { cursor: default; opacity: .6; }
+.beta-badge { margin-left: -2px; padding: 1px 5px; border: 1px solid var(--accent); border-radius: 4px;
+  color: var(--accent); font-size: .62rem; font-weight: 700; letter-spacing: .04em; line-height: 1.3; }
 
 .spin-row { display: flex; align-items: center; gap: 12px; }
 .include-excluded { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; white-space: nowrap; font-size: .85rem; cursor: pointer; }

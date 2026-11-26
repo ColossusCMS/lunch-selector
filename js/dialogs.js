@@ -1,5 +1,5 @@
-import { buildFeedbackBody, feedbackStarLabel } from './feedback.js?v=76b4662bb704';
-import { starLabel } from './rating.js?v=76b4662bb704';
+import { buildFeedbackBody, feedbackStarLabel } from './feedback.js?v=d8f5ec889ac9';
+import { starLabel } from './rating.js?v=d8f5ec889ac9';
 
 const element = (tag, className, textContent = '') =>
   Object.assign(document.createElement(tag), { className, textContent });

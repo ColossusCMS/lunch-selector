@@ -91,3 +91,4 @@
 - 2026-11-26 16:32 [pm] SETUP 피드백 절에 폼 응답자 범위·시크릿 창 확인법 추가. 사이클 031 지시: README v2.5 반영 + 새 스크린샷
 - 2026-11-26 16:34 [codex] 사이클 031 구현: v2.5 README 개편, 실데이터 모바일 화면 3장, 상대 경로 13개 및 Mermaid 2개 검증, npm test 178 통과.
 - 2026-11-26 16:35 [pm] 사이클 031 완료: README v2.5 반영 + 스크린샷 3장(ai-recommend·notice·feedback), PM 검토(이미지·링크·사실 대조), npm test 178 pass
+- 2026-11-26 16:58 [pm] AI 메뉴 추천 토글에 BETA 배지 추가(버전·README 변경 없음), npm run bump(d8f5ec889ac9), npm test 178 pass
