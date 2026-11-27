@@ -565,11 +565,18 @@ h1 {
 .notice-content { display: grid; gap: 12px; overflow-wrap: anywhere; line-height: 1.6; }
 .notice-content p, .notice-content ul { margin: 0; }
 .notice-content ul { padding-inline-start: 1.4em; }
+
+.notice-font-small { font-size: .85em; }
+.notice-font-large { font-size: 1.25em; }
+
 .notice-bold { font-weight: 700; }
+.notice-italic { font-style: italic; }
+
 .notice-color-red { color: var(--notice-red); }
 .notice-color-blue { color: var(--notice-blue); }
 .notice-color-green { color: var(--notice-green); }
 .notice-color-orange { color: var(--notice-orange); }
+
 .notice-inline-link { color: var(--notice-blue); }
 .notice-image {
   width: 100%;

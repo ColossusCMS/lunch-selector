@@ -1,7 +1,10 @@
-import { httpsLink } from './notice.js?v=e12234f78784';
+import { httpsLink } from './notice.js?v=a3cfd24a9250';
 
 const KINDS = new Map([
   ['굵게', { type: 'style', tag: 'strong', className: 'notice-bold' }],
+  ['기울임', { type: 'style', tag: 'em', className: 'notice-italic'}],
+  ['크게', { type: 'style', tag: 'span', className: 'notice-font-large' }],
+  ['작게', { type: 'style', tag: 'span', className: 'notice-font-small' }],
   ['빨강', { type: 'style', tag: 'span', className: 'notice-color-red' }],
   ['파랑', { type: 'style', tag: 'span', className: 'notice-color-blue' }],
   ['초록', { type: 'style', tag: 'span', className: 'notice-color-green' }],
