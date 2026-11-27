@@ -578,6 +578,7 @@ h1 {
   object-fit: contain;
   border-radius: 10px;
 }
+.notice-image-centered { justify-self: center; }
 .notice-link {
   display: block;
   margin-top: 12px;

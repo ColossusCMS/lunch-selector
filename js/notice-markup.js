@@ -1,4 +1,4 @@
-import { httpsLink } from './notice.js?v=23c5838dc8e1';
+import { httpsLink } from './notice.js?v=e12234f78784';
 
 const KINDS = new Map([
   ['굵게', { type: 'style', tag: 'strong', className: 'notice-bold' }],
@@ -11,6 +11,8 @@ const KINDS = new Map([
 ]);
 const MAX_STYLE_DEPTH = 4;
 const MAX_IMAGES = 3;
+const MAX_IMAGE_URL_LENGTH = 2000;
+const IMAGE_PERCENT = /^\d{1,3}%$/;
 const IMAGE_FILE = /^[A-Za-z0-9_-]{1,60}\.(png|jpe?g|webp|gif)$/i;
 
 function pairBraces(line) {
@@ -70,8 +72,17 @@ function parseImage(line, pairs, title) {
   const match = /^\{([^{}:]+):/.exec(trimmed);
   if (KINDS.get(match?.[1])?.type !== 'image'
     || pairs.get(start) !== start + trimmed.length - 1) return null;
-  const [file, alt] = splitLabel(trimmed.slice(match[0].length, -1));
-  return IMAGE_FILE.test(file) ? { type: 'image', file, alt: alt || title } : null;
+  const parts = trimmed.slice(match[0].length, -1).split('|');
+  if (parts.length > 3) return null;
+  const [target, alt = '', size = ''] = parts.map((part) => part.trim());
+  const src = IMAGE_FILE.test(target)
+    ? `images/notice/${target}`
+    : target.length <= MAX_IMAGE_URL_LENGTH ? httpsLink(target) : '';
+  if (!src || (size && !IMAGE_PERCENT.test(size))) return null;
+
+  const width = size ? Number.parseInt(size, 10) : 100;
+  if (width < 10 || width > 100) return null;
+  return { type: 'image', src, alt: alt || title, width };
 }
 
 export function parseNoticeMarkup(text, title = '') {

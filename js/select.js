@@ -1,5 +1,5 @@
 // 지역·그룹·업종·오늘 요일로 후보를 고른다.
-/** @typedef {import('./stores.js?v=23c5838dc8e1').Store} Store */
+/** @typedef {import('./stores.js?v=e12234f78784').Store} Store */
 const byKorean = (a, b) => a.localeCompare(b, 'ko');
 const inGroup = (store, group) => group === null || store.groups.includes(group);
 const members = (stores, region, group = null) => stores.filter((s) => s.region === region && inGroup(s, group));

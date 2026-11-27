@@ -1,6 +1,6 @@
-import { buildFeedbackBody, feedbackStarLabel } from './feedback.js?v=23c5838dc8e1';
-import { parseNoticeMarkup } from './notice-markup.js?v=23c5838dc8e1';
-import { starLabel } from './rating.js?v=23c5838dc8e1';
+import { buildFeedbackBody, feedbackStarLabel } from './feedback.js?v=e12234f78784';
+import { parseNoticeMarkup } from './notice-markup.js?v=e12234f78784';
+import { starLabel } from './rating.js?v=e12234f78784';
 
 const element = (tag, className, textContent = '') =>
   Object.assign(document.createElement(tag), { className, textContent });
@@ -67,9 +67,15 @@ function renderNoticeContent(text, title) {
   const content = element('div', 'notice-content');
   for (const block of parseNoticeMarkup(text, title)) {
     if (block.type === 'image') {
-      const image = Object.assign(element('img', 'notice-image'), { alt: block.alt });
+      const image = Object.assign(element('img', 'notice-image'), {
+        alt: block.alt, referrerPolicy: 'no-referrer',
+      });
+      if (block.width < 100) {
+        image.style.width = `${block.width}%`;
+        image.classList.add('notice-image-centered');
+      }
       image.addEventListener('error', () => image.remove(), { once: true });
-      image.src = `images/notice/${block.file}`;
+      image.src = block.src;
       content.append(image);
     } else if (block.type === 'list') {
       const list = document.createElement('ul');
