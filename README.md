@@ -14,8 +14,8 @@ AI 메뉴 추천을 켜면 오늘 날씨에 어울리는 업종을 골라드려�
 ![Backend 선택 — AI 추천](https://img.shields.io/badge/Backend-%EC%84%A0%ED%83%9D_%28AI_%EC%B6%94%EC%B2%9C%29-2f9e44)
 ![No Build](https://img.shields.io/badge/Build-없음-2f9e44)
 ![Dependencies](https://img.shields.io/badge/dependencies-0-2f9e44)
-![Tests](https://img.shields.io/badge/tests-178_passing-2f9e44)
-![Version](https://img.shields.io/badge/version-v2.5-e8590c)
+![Tests](https://img.shields.io/badge/tests-190_passing-2f9e44)
+![Version](https://img.shields.io/badge/version-v2.6-e8590c)
 
 <img src="docs/images/demo.gif" alt="카드 안 룰렛이 상위 등급 공개 창으로 이어지고, 업종·등급 단서와 1순위 결과를 본 뒤 결과 카드와 지도를 보여주는 모습" width="320">
 

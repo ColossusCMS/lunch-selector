@@ -11,6 +11,10 @@
   --star-gold: #875500;
   --star-bg: #fff1bf;
   --star-border: #b68117;
+  --notice-red: #a52129;
+  --notice-blue: #1455a0;
+  --notice-green: #176238;
+  --notice-orange: #a14509;
   color-scheme: light;
 }
 
@@ -29,6 +33,10 @@
     --star-gold: #ffd366;
     --star-bg: #493916;
     --star-border: #b68b32;
+    --notice-red: #ff929b;
+    --notice-blue: #8bc4ff;
+    --notice-green: #8bd8a4;
+    --notice-orange: #ffb479;
     color-scheme: dark;
   }
 }
@@ -45,6 +53,10 @@
   --star-gold: #ffd366;
   --star-bg: #493916;
   --star-border: #b68b32;
+  --notice-red: #ff929b;
+  --notice-blue: #8bc4ff;
+  --notice-green: #8bd8a4;
+  --notice-orange: #ffb479;
   color-scheme: dark;
 }
 
@@ -550,8 +562,37 @@ h1 {
 
 .notice-title { overflow-wrap: anywhere; }
 .notice-count { color: var(--muted); font-size: .75em; white-space: nowrap; }
-.notice-content { white-space: pre-line; overflow-wrap: anywhere; line-height: 1.6; }
-.notice-link { display: inline-block; color: var(--accent); font-weight: 600; }
+.notice-content { display: grid; gap: 12px; overflow-wrap: anywhere; line-height: 1.6; }
+.notice-content p, .notice-content ul { margin: 0; }
+.notice-content ul { padding-inline-start: 1.4em; }
+.notice-bold { font-weight: 700; }
+.notice-color-red { color: var(--notice-red); }
+.notice-color-blue { color: var(--notice-blue); }
+.notice-color-green { color: var(--notice-green); }
+.notice-color-orange { color: var(--notice-orange); }
+.notice-inline-link { color: var(--notice-blue); }
+.notice-image {
+  width: 100%;
+  height: auto;
+  max-height: 50vh;
+  object-fit: contain;
+  border-radius: 10px;
+}
+.notice-link {
+  display: block;
+  margin-top: 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--notice-orange);
+  color: var(--surface);
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+}
+.notice-link:focus-visible, .notice-inline-link:focus-visible {
+  outline: 2px solid var(--notice-blue);
+  outline-offset: 2px;
+}
 .feedback-row { flex-wrap: wrap; }
 .feedback-row .rating-name { min-width: 10em; margin-bottom: 0; }
 .feedback-comment-label { display: block; margin-top: 8px; }

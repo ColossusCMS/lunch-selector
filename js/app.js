@@ -3,28 +3,28 @@
 import {
   APP_VERSION, ABOUT_URL, modes, initialMode, dataUrl, editUrl, KAKAO_MAP_KEY, RATING, ratingEnabled,
   RECOMMEND_URL, RECOMMEND_MODE, PUBLISH_URL, NOTICE, FEEDBACK, feedbackEnabled,
-} from './config.js?v=d8f5ec889ac9';
-import { loadStores, fetchCsvRows, createRequestCounter } from './data.js?v=d8f5ec889ac9';
-import { listRegions, listGroups, listCategories, filterCandidates, closedToday, pickTop } from './select.js?v=d8f5ec889ac9';
-import { burstConfetti, reducedMotion } from './animation.js?v=d8f5ec889ac9';
-import { playFirstPick, showFirstPick } from './reveal.js?v=d8f5ec889ac9';
-import { canReplay } from './reveal-plan.js?v=d8f5ec889ac9';
-import { createSound } from './sound.js?v=d8f5ec889ac9';
-import { createMap, kakaoLink } from './map.js?v=d8f5ec889ac9';
-import { THEME_KEY, THEMES, parseTheme, applyTheme } from './theme.js?v=d8f5ec889ac9';
+} from './config.js?v=23c5838dc8e1';
+import { loadStores, fetchCsvRows, createRequestCounter } from './data.js?v=23c5838dc8e1';
+import { listRegions, listGroups, listCategories, filterCandidates, closedToday, pickTop } from './select.js?v=23c5838dc8e1';
+import { burstConfetti, reducedMotion } from './animation.js?v=23c5838dc8e1';
+import { playFirstPick, showFirstPick } from './reveal.js?v=23c5838dc8e1';
+import { canReplay } from './reveal-plan.js?v=23c5838dc8e1';
+import { createSound } from './sound.js?v=23c5838dc8e1';
+import { createMap, kakaoLink } from './map.js?v=23c5838dc8e1';
+import { THEME_KEY, THEMES, parseTheme, applyTheme } from './theme.js?v=23c5838dc8e1';
 import { PICK_KEY, ratingKey, aggregateRatings, cardTier, formatStatLine, parsePick, pickStatus,
   buildRatingBody, applySendResults, dropIfSame, ratingModeLabel,
-  shouldCheckRatings, shouldRefreshRatings } from './rating.js?v=d8f5ec889ac9';
+  shouldCheckRatings, shouldRefreshRatings } from './rating.js?v=23c5838dc8e1';
 
-import { EXCLUDE_KEY, EXCLUDE_DAYS, readExcluded, withoutExcluded } from './exclude.js?v=d8f5ec889ac9';
+import { EXCLUDE_KEY, EXCLUDE_DAYS, readExcluded, withoutExcluded } from './exclude.js?v=23c5838dc8e1';
 
 import {
   buildRecommendUrl, fetchRecommendation, formatRecommendationAnnouncement, formatUpdatedAt, pickVisibleCategories,
-} from './recommend.js?v=d8f5ec889ac9';
+} from './recommend.js?v=23c5838dc8e1';
 
-import { activeNotices, hideNotice, parseNotices, readHidden, todayInSeoul } from './notice.js?v=d8f5ec889ac9';
-import { feedbackContext, shouldAutoPrompt } from './feedback.js?v=d8f5ec889ac9';
-import { createStarControl, showFeedback, showNotice } from './dialogs.js?v=d8f5ec889ac9';
+import { activeNotices, hideNotice, parseNotices, readHidden, todayInSeoul } from './notice.js?v=23c5838dc8e1';
+import { feedbackContext, shouldAutoPrompt } from './feedback.js?v=23c5838dc8e1';
+import { createStarControl, showFeedback, showNotice } from './dialogs.js?v=23c5838dc8e1';
 
 const NOTICE_KEY = 'lunch-selector:notice-hidden';
 const FEEDBACK_KEY = 'lunch-selector:feedback-prompted';
@@ -80,9 +80,9 @@ const els = {
 };
 
 const state = {
-  /** @type {import('./config.js?v=d8f5ec889ac9').Mode} */
+  /** @type {import('./config.js?v=23c5838dc8e1').Mode} */
   mode: null,
-  /** @type {import('./stores.js?v=d8f5ec889ac9').Store[]} */
+  /** @type {import('./stores.js?v=23c5838dc8e1').Store[]} */
   stores: [],
   /** @type {string | null} null이면 지역 미선택, ''는 하위 호환 지역 */
   region: null,

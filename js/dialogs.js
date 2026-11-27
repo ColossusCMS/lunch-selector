@@ -1,5 +1,6 @@
-import { buildFeedbackBody, feedbackStarLabel } from './feedback.js?v=d8f5ec889ac9';
-import { starLabel } from './rating.js?v=d8f5ec889ac9';
+import { buildFeedbackBody, feedbackStarLabel } from './feedback.js?v=23c5838dc8e1';
+import { parseNoticeMarkup } from './notice-markup.js?v=23c5838dc8e1';
+import { starLabel } from './rating.js?v=23c5838dc8e1';
 
 const element = (tag, className, textContent = '') =>
   Object.assign(document.createElement(tag), { className, textContent });
@@ -46,11 +47,55 @@ function closeButton(dialog) {
   return close;
 }
 
+function appendNoticeInline(parent, nodes) {
+  for (const node of nodes) {
+    if (node.type === 'text') {
+      parent.append(node.value);
+    } else if (node.type === 'link') {
+      parent.append(Object.assign(element('a', 'notice-inline-link', node.text), {
+        href: node.href, target: '_blank', rel: 'noopener',
+      }));
+    } else {
+      const styled = element(node.tag, node.className);
+      appendNoticeInline(styled, node.children);
+      parent.append(styled);
+    }
+  }
+}
+
+function renderNoticeContent(text, title) {
+  const content = element('div', 'notice-content');
+  for (const block of parseNoticeMarkup(text, title)) {
+    if (block.type === 'image') {
+      const image = Object.assign(element('img', 'notice-image'), { alt: block.alt });
+      image.addEventListener('error', () => image.remove(), { once: true });
+      image.src = `images/notice/${block.file}`;
+      content.append(image);
+    } else if (block.type === 'list') {
+      const list = document.createElement('ul');
+      for (const item of block.items) {
+        const li = document.createElement('li');
+        appendNoticeInline(li, item);
+        list.append(li);
+      }
+      content.append(list);
+    } else {
+      const paragraph = document.createElement('p');
+      block.lines.forEach((line, index) => {
+        if (index) paragraph.append(document.createElement('br'));
+        appendNoticeInline(paragraph, line);
+      });
+      content.append(paragraph);
+    }
+  }
+  return content;
+}
+
 export function showNotice(dialog, notice, index, total, onHide) {
   const title = element('h2', 'notice-title', notice.title);
   title.id = 'notice-title';
   if (total > 1) title.append(' ', element('small', 'notice-count', `${index}/${total}`));
-  const content = element('p', 'notice-content', notice.content);
+  const content = renderNoticeContent(notice.content, notice.title);
   const actions = element('div', 'rating-actions');
   const today = button('오늘 하루 안 보기');
   const forever = button('다시 띄우지 않기');

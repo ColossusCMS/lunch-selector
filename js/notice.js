@@ -9,7 +9,7 @@ export function todayInSeoul(now = Date.now()) {
   return seoulDate.format(now);
 }
 
-function httpsLink(value) {
+export function httpsLink(value) {
   if (!value.startsWith('https://')) return '';
   try {
     return new URL(value).href;
