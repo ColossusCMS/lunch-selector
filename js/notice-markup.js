@@ -1,4 +1,4 @@
-import { httpsLink } from './notice.js?v=a3cfd24a9250';
+import { httpsLink } from './notice.js?v=bbf59962683f';
 
 const KINDS = new Map([
   ['굵게', { type: 'style', tag: 'strong', className: 'notice-bold' }],

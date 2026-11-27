@@ -1,9 +1,9 @@
 // 시트 연결 설정. 처음 한 번만 고치면 된다.
 
-import { FEEDBACK_FIELDS } from './feedback.js?v=e12234f78784';
+import { FEEDBACK_FIELDS } from './feedback.js?v=bbf59962683f';
 
 // 릴리스 때 화면에 표시할 앱 버전은 여기서 갱신한다.
-export const APP_VERSION = 'v2.6.1';
+export const APP_VERSION = 'v2.6.2';
 
 // 추천 서버의 HTTPS 주소. 비워두면 추천 줄을 숨긴다.
 export const RECOMMEND_URL = 'https://colossuskim.duckdns.org:29187';

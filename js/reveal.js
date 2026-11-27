@@ -1,6 +1,6 @@
 // 카드 안 룰렛과 상위 등급의 빛·입자 연출을 연결한다.
-import { cardRoulette } from './animation.js?v=e12234f78784';
-import { revealPlan, replayPlan, rouletteRows, gemKind, revealSecondsLeft, REVEAL_TIME as TIME } from './reveal-plan.js?v=e12234f78784';
+import { cardRoulette } from './animation.js?v=bbf59962683f';
+import { revealPlan, replayPlan, rouletteRows, gemKind, revealSecondsLeft, REVEAL_TIME as TIME } from './reveal-plan.js?v=bbf59962683f';
 
 export function showFirstPick(dialog, { name, category, tierId, sound, onSkip, replay = false, names = [], startedAt = performance.now() }) {
   const plan = replay ? replayPlan(tierId, Boolean(category)) : revealPlan(tierId, Boolean(category));

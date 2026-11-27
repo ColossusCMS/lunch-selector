@@ -1,9 +1,9 @@
 // CSV 주소에서 가게 목록을 읽어온다.
 
-import { parseCsv } from './csv.js?v=e12234f78784';
-import { rowsToStores } from './stores.js?v=e12234f78784';
+import { parseCsv } from './csv.js?v=bbf59962683f';
+import { rowsToStores } from './stores.js?v=bbf59962683f';
 
-/** @typedef {import('./stores.js?v=e12234f78784').Store} Store */
+/** @typedef {import('./stores.js?v=bbf59962683f').Store} Store */
 
 /** 불러오기마다 번호를 붙여 가장 최근 요청인지 확인한다. */
 export function createRequestCounter() {

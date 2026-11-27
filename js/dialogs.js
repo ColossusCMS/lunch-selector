@@ -1,6 +1,6 @@
-import { buildFeedbackBody, feedbackStarLabel } from './feedback.js?v=e12234f78784';
-import { parseNoticeMarkup } from './notice-markup.js?v=e12234f78784';
-import { starLabel } from './rating.js?v=e12234f78784';
+import { buildFeedbackBody, feedbackStarLabel } from './feedback.js?v=bbf59962683f';
+import { parseNoticeMarkup } from './notice-markup.js?v=bbf59962683f';
+import { starLabel } from './rating.js?v=bbf59962683f';
 
 const element = (tag, className, textContent = '') =>
   Object.assign(document.createElement(tag), { className, textContent });
